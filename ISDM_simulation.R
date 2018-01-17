@@ -43,20 +43,20 @@ gr <- expand.grid(px.m, px.m)
 #-----------------------#
 
 #Intercept parameter for intensity function
-beta0 <- runif(1, -3, 0)
+beta0 <- runif(1, -1, -0.75)
 #Effect parameter of enivornment on intensity
-beta1 <- runif(1, 0.1, 0.5)
+beta1 <- runif(1, 0.75, 1)
 
 #Intercept parameter for prensence only (PO) detection
 #alpha0 <- runif(1, -3, 0)
 #Effect parameter of environment on PO detection
-alpha1 <- runif(1, 3, 5)
+alpha1 <- runif(1, 0, 2)
 
 #Unobserved sampling error
-error <- runif(1, 0.25, 0.35)
+error <- runif(1, 0.3, 0.4)
 
 #Scale parameter for DS detection
-sigma <- runif(1, 2, 4)
+sigma <- runif(1, 1.75, 2.25)
 
 #-------------------------------------#
 #-Draw environmental covariate values-#
@@ -70,14 +70,14 @@ sigma <- runif(1, 2, 4)
 #load(file = "xcov.Rdata")
 
 #Empty matrix to be filled
-x <- matrix(NA, ncol = 5, nrow = 10000)
+x <- matrix(NA, ncol = 5, nrow = (W*W))
 
 #Combine 5 bivariate normal distributions
 for(i in 1:5){
   #Mean of x-dim distribution
-  mux <- runif(1, 0, 100)
+  mux <- runif(1, 0, W)
   #Mean of y-dim distribution
-  muy <- runif(1, 0, 100)
+  muy <- runif(1, 0, W)
   #Variance of x-dim distribution
   sigmax <- runif(1, 10, 30)
   #Variance of y-dim distribution  
@@ -90,7 +90,7 @@ for(i in 1:5){
   x[,i] <- dmvnorm(gr, mean=mu, sigma=Sigma) * runif(1, 0.2, 0.8)
 }
 x <- apply(x, MARGIN = 1, sum)
-x = (x - mean(x))/sd(x)
+x <- (x - mean(x))/sd(x)
 
 #Visualize covariate
 par(mar=c(3,3,3,6))
@@ -120,58 +120,58 @@ points(u1, u2, col = 'black', pch = 20)
 #----------------------------#
 
 #Sector ID (SW = 1, SE = 2, NW = 3, NE = 4)
-sector <- c(rep(rep(1:2, each = 50),50), rep(rep(3:4, each=50),50))
+#sector <- c(rep(rep(1:2, each = 50),50), rep(rep(3:4, each=50),50))
 #Select direction for horizontal or vertical sampling
-direction <- sample(1:2, 1)
+#direction <- sample(1:2, 1)
 #Transect lines for distance sampling
-start <- sample(1:(W*W), 1)
+#start <- sample(1:(W*W), 1)
 #Transect design based on sector and direction
-if(sector[start] == 1){
-  if(direction == 1){
-    x.line <- rep(c(gr[start,1], gr[start,1] + 20, gr[start,1] + 40), each = 40)
-    y.line <- rep(seq(gr[start,2], gr[start,2] + 39.5, 1), 3)
-  }
-  if(direction == 2){
-    x.line <- rep(seq(gr[start,1], gr[start,1] + 39.5, 1), 3)
-    y.line <- rep(c(gr[start,2], gr[start,2] + 20, gr[start,2] + 40), each = 40)
-  }
-}
-if(sector[start] == 2){
-  if(direction == 1){
-    x.line <- rep(c(gr[start,1], gr[start,1] - 20, gr[start,1] - 40), each = 40)
-    y.line <- rep(seq(gr[start,2], gr[start,2] + 39.5, 1), 3)
-  }
-  if(direction == 2){
-    x.line <- rep(seq(gr[start,1], gr[start,1] - 39.5, -1), 3)
-    y.line <- rep(c(gr[start,2], gr[start,2] + 20, gr[start,2] + 40), each = 40)
-  }
-}
-if(sector[start] == 3){
-  if(direction == 1){
-    x.line <- rep(c(gr[start,1], gr[start,1] + 20, gr[start,1] + 40), each = 40)
-    y.line <- rep(seq(gr[start,2], gr[start,2] - 39.5, -1), 3) 
-  }
-  if(direction == 2){
-    x.line <- rep(seq(gr[start,1], gr[start,1] + 39.5, 1), 3)
-    y.line <- rep(c(gr[start,2], gr[start,2] - 20, gr[start,2] - 40), each = 40)
-  }
-}
-if(sector[start] == 4){
-  if(direction == 1){
-    x.line <- rep(c(gr[start,1], gr[start,1] - 20, gr[start,1] - 40), each = 40)
-    y.line <- rep(seq(gr[start,2], gr[start,2] - 39.5, -1), 3)
-  }
-  if(direction == 2){
-    x.line <- rep(seq(gr[start,1], gr[start,1] - 39.5, -1), 3)
-    y.line <- rep(c(gr[start,2], gr[start,2] - 20, gr[start,2] - 40), each = 40)
-  }
-}
+# if(sector[start] == 1){
+#   if(direction == 1){
+#     x.line <- rep(c(gr[start,1], gr[start,1] + 20, gr[start,1] + 40), each = 40)
+#     y.line <- rep(seq(gr[start,2], gr[start,2] + 39.5, 1), 3)
+#   }
+#   if(direction == 2){
+#     x.line <- rep(seq(gr[start,1], gr[start,1] + 39.5, 1), 3)
+#     y.line <- rep(c(gr[start,2], gr[start,2] + 20, gr[start,2] + 40), each = 40)
+#   }
+# }
+# if(sector[start] == 2){
+#   if(direction == 1){
+#     x.line <- rep(c(gr[start,1], gr[start,1] - 20, gr[start,1] - 40), each = 40)
+#     y.line <- rep(seq(gr[start,2], gr[start,2] + 39.5, 1), 3)
+#   }
+#   if(direction == 2){
+#     x.line <- rep(seq(gr[start,1], gr[start,1] - 39.5, -1), 3)
+#     y.line <- rep(c(gr[start,2], gr[start,2] + 20, gr[start,2] + 40), each = 40)
+#   }
+# }
+# if(sector[start] == 3){
+#   if(direction == 1){
+#     x.line <- rep(c(gr[start,1], gr[start,1] + 20, gr[start,1] + 40), each = 40)
+#     y.line <- rep(seq(gr[start,2], gr[start,2] - 39.5, -1), 3) 
+#   }
+#   if(direction == 2){
+#     x.line <- rep(seq(gr[start,1], gr[start,1] + 39.5, 1), 3)
+#     y.line <- rep(c(gr[start,2], gr[start,2] - 20, gr[start,2] - 40), each = 40)
+#   }
+# }
+# if(sector[start] == 4){
+#   if(direction == 1){
+#     x.line <- rep(c(gr[start,1], gr[start,1] - 20, gr[start,1] - 40), each = 40)
+#     y.line <- rep(seq(gr[start,2], gr[start,2] - 39.5, -1), 3)
+#   }
+#   if(direction == 2){
+#     x.line <- rep(seq(gr[start,1], gr[start,1] - 39.5, -1), 3)
+#     y.line <- rep(c(gr[start,2], gr[start,2] - 20, gr[start,2] - 40), each = 40)
+#   }
+# }
 
 #Alternate transects
-#x.line <- rep(c(25,50,75), each = W)
-#y.line <- rep(seq(0.5, W-0.5, 1), 3)
-x.line <- rep(c(25, 75), each = 60)
-y.line <- rep(c(seq(11, 40, 1), seq(61, 90, 1)), 2)
+x.line <- rep(c(25,50,75), each = W)
+y.line <- rep(seq(0.5, W-0.5, 1), 3)
+#x.line <- rep(c(25, 75), each = 60)
+#y.line <- rep(c(seq(11, 40, 1), seq(61, 90, 1)), 2)
 #Visualize transect lines
 points(x.line, y.line, col = 'grey', pch = 20)
 
@@ -179,6 +179,7 @@ points(x.line, y.line, col = 'grey', pch = 20)
 J <- length(x.line)
 #Distance array for all points on transect line
 d <- array(NA, dim = c(W*W, J))
+
 #Distance to nearest transect
 dist <- NULL
 #Simulate above quantities
@@ -202,6 +203,10 @@ for(i in 1:N){
   if(dst[i] > 12)
     y.ds[i] == 0
 }
+
+# p.ds <- exp(-dst * dst / (2 * sigma * sigma))
+# y.ds <- rbinom(N, 1, p.ds)
+# y.ds[dst>12] <- 0
 
 #Coordinates of detected individuals
 uxds <- u1[y.ds == 1]
@@ -262,8 +267,7 @@ image(rasterFromXYZ(cbind(gr,w)), col=topo.colors(20))
 #----------------------------------#
 
 #Detection probability of PO
-#p.po <- expit(alpha0 + alpha1*w)
-p.po <- expit(alpha1*w) * error
+p.po <- expit(alpha1*w + alpha0) * error
 #Individuals detected in PO
 y.po <- NULL
 for(i in 1:N){
@@ -329,13 +333,13 @@ str(dataISDM <- list(x = x, G = (W*W),
 N.st <- sum(y.ds) + 1
 
 #Distance sampling model
-initsDS <- function(){list(N = N.st, sigma=runif(1,1,3), beta1 = runif(1, -0.5, 0.5), beta0 = runif(1, -3, 0.5))}
+initsDS <- function(){list(N = N.st, sigma=runif(1,1,3), beta1 = runif(1, 0.75, 1), beta0 = runif(1, -1, -0.75))}
 
 #Presnece only model
-initsPO <- function(){list(beta1 = runif(1, -0.5, 0.5), beta0 = runif(1, -3, 0.5), alpha1 = runif(1, 0, 10))}
+initsPO <- function(){list(beta1 = runif(1, 0.75, 1), beta0 = runif(1, -1, -0.75), alpha1 = runif(1, 0, 2))}
 
 #Integrated species distribution model
-initsISDM <- function(){list(N = N.st, sigma=runif(1,1,3), beta1 = runif(1, -0.5, 0.5), beta0 = runif(1, -3, 0.5), alpha1 = runif(1, 0, 10))}
+initsISDM <- function(){list(N = N.st, sigma=runif(1,1,3), beta1 = runif(1, 0.75, 1), beta0 = runif(1, -1, -0.75), alpha1 = runif(1, 0, 2))}
 
 #------------#
 #-Parameters-#
@@ -345,16 +349,16 @@ initsISDM <- function(){list(N = N.st, sigma=runif(1,1,3), beta1 = runif(1, -0.5
 paramsDS <- c("Ntot", "beta0", "beta1")
 
 #Presence only model
-paramsPO <- c("Ntot", "alpha1",  "beta0", "beta1")
+paramsPO <- c("Ntot", "alpha0", "alpha1", "beta0", "beta1")
 
 #Integrated species distribution model
-paramsISDM <- c("Ntot", "alpha1", "beta0", "beta1")
+paramsISDM <- c("Ntot", "alpha0", "alpha1", "beta0", "beta1")
 
 #-------------#
 #-MCMC values-#
 #-------------#
-nb <- 10000
-ni <- 16000
+nb <- 1000
+ni <- 7000
 nt <- 2
 nc <- 3
 na <- 1000
@@ -373,4 +377,6 @@ ISDM <- jagsUI(dataISDM, initsISDM, paramsISDM, "ISDM.txt", n.thin=nt,
                       n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na,  parallel = TRUE)
 
 image(rasterFromXYZ(cbind(gr, exp(beta0 + beta1*x))), col = topo.colors(20))
-image(rasterFromXYZ(cbind(gr, exp(DS2$mean$beta0 + DS2$mean$beta1*x))), col = topo.colors(20))
+image(rasterFromXYZ(cbind(gr, exp(DS$mean$beta0 + DS$mean$beta1*x))), col = topo.colors(20))
+image(rasterFromXYZ(cbind(gr, exp(PO$mean$beta0 + PO$mean$beta1*x))), col = topo.colors(20))
+image(rasterFromXYZ(cbind(gr, exp(ISDM$mean$beta0 + ISDM$mean$beta1*x))), col = topo.colors(20))
