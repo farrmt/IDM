@@ -288,56 +288,97 @@ for(i in 1:length(ypo.S[,1])){
 }
 ypo.S <- tmp
 
-#----------------------------------#
-#-Compile BUGS data for each model-#
-#----------------------------------#
+#----------------------------------------------#
+#-Compile BUGS data for each sampling scenario-#
+#----------------------------------------------#
 
-#Distance sampling model
-str(dataDS <- list(x = x, G = (W*W), nD = nD, v = v, B = B, mdpt = mdpt, 
-                   dclass = dclass, nds = y.ds, y.ds = y.ds, 
-                   coverage = coverage, pixds = pixds))
+#Scenario 1: Presence only robust
+str(data1 <- list(x = x, G = (W*W),
+                  w = w.R,  y.po = ypo.R))
 
-#Presence only model
-str(dataPO <- list(x = x, G = (W*W), w = w,  y.po = y.po))
+#Scenario 2: Presence only sparse
+str(data2 <- list(x = x, G = (W*W),
+                  w = w.S,  y.po = ypo.S))
 
-#Integrated species distribution model
-str(dataISDM <- list(x = x, G = (W*W), nD = nD, v = v, B = B, mdpt = mdpt,
-                     dclass = dclass, nds = y.ds, y.ds = y.ds, 
-                     coverage = coverage, pixds = pixds,
-                     w = w,  y.po = y.po))
+#Scenario 3: Distance sampling robust
+str(data3 <- list(x = x, G = (W*W), C = C.R, dst = dst.R,
+                  nD = nD, v = v, B = B, mdpt = mdpt, dclass = dclass.R, nds = sum(yds.R),
+                  y.ds = yds.R, coverage = coverage.R))
+
+#Scenario 4: Distance sampling sparse
+str(data4 <- list(x = x, G = (W*W), C = C.S, dst = dst.S,
+                  nD = nD, v = v, B = B, mdpt = mdpt, dclass = dclass.S, nds = sum(yds.S),
+                  y.ds = yds.S, coverage = coverage.S))
+
+#Scenario 5: ISDM robust DS & PO
+str(data5 <- list(x = x, G = (W*W), C = C.R, dst = dst.R,
+                  nD = nD, v = v, B = B, mdpt = mdpt, dclass = dclass.R, nds = sum(yds.R), 
+                  y.ds = yds.R, coverage = coverage.R, w = w.R, y.po = ypo.R))
+
+#Scenario 6: ISDM sparse DS & PO
+str(data6 <- list(x = x, G = (W*W), C = C.S, dst = dst.S,
+                  nD = nD, v = v, B = B, mdpt = mdpt, dclass = dclass.S, nds = sum(yds.S), 
+                  y.ds = yds.S, coverage = coverage.S, w = w.S, y.po = ypo.S))
+
+#Scenario 7: ISDM robust DS & sparse PO
+str(data7 <- list(x = x, G = (W*W), C = C.R, dst = dst.R,
+                  nD = nD, v = v, B = B, mdpt = mdpt, dclass = dclass.R, nds = sum(yds.R), 
+                  y.ds = yds.R, coverage = coverage.R, w = w.S, y.po = ypo.S))
+
+#Scenario 8: ISDM sparse DS & robust PO
+str(data8 <- list(x = x, G = (W*W), C = C.S, dst = dst.S,
+                  nD = nD, v = v, B = B, mdpt = mdpt, dclass = dclass.S, nds = sum(yds.S), 
+                  y.ds = yds.S, coverage = coverage.S, w = w.R, y.po = ypo.R))
 
 #----------------#
 #-Initial values-#
 #----------------#
 
 #Inital value for N for distance sampling
-N.st <- sum(y.ds) + 1
+Nst.R <- yds.R + 1 #robust
+Nst.S <- yds.S + 1 #sparse
 
-#Distance sampling model
-initsDS <- function(){list(N = N.st, sigma=runif(1,1,3), 
-                           beta1 = runif(1, 0.75, 1), beta0 = runif(1, -1, -0.75))}
+#Scenario 1: Presence only robust
+inits1 <- function(){list(beta1 = runif(1, beta1-0.25, beta1+0.25), beta0 = runif(1, beta0-0.25, beta0+0.25), 
+                          alpha1 = runif(1, alpha1-0.25, alpha1+0.25), alpha0 = runif(1, alpha0-0.25, alpha0+0.25))}
 
-#Presnece only model
-initsPO <- function(){list(beta1 = runif(1, 0.75, 1), beta0 = runif(1, -1, -0.75), 
-                           alpha0 = runif(1, -3, 0), alpha1 = runif(1, 0, 2))}
+#Scenario 2: Presence only sparse
+inits2 <- function(){list(beta1 = runif(1, beta1-0.25, beta1+0.25), beta0 = runif(1, beta0-0.25, beta0+0.25), 
+                          alpha1 = runif(1, alpha1-0.25, alpha1+0.25), alpha0 = runif(1, alpha0-0.25, alpha0+0.25))}
 
-#Integrated species distribution model
-initsISDM <- function(){list(N = N.st, sigma=runif(1,1,3),
-                             beta1 = runif(1, 0.75, 1), beta0 = runif(1, -1, -0.75), 
-                             alpha0 = runif(1, -3, 0), alpha1 = runif(1, 0, 2))}
+#Scenario 3: Distance sampling robust
+inits3 <- function(){list(N = Nst.R, sigma = runif(1, sigma-0.25, sigma+0.25), 
+                          beta1 = runif(1, beta1-0.25, beta1+0.25), beta0 = runif(1, beta0-0.25, beta0+0.25))}
+
+#Scenario 4: Distance sampling robust
+inits4 <- function(){list(N = Nst.S, sigma = runif(1, sigma-0.25, sigma+0.25), 
+                          beta1 = runif(1, beta1-0.25, beta1+0.25), beta0 = runif(1, beta0-0.25, beta0+0.25))}
+
+#Scenario 5: ISDM robust DS & PO
+inits5 <- function(){list(N = Nst.R, sigma = runif(1, sigma-0.25, sigma+0.25), 
+                          beta1 = runif(1, beta1-0.25, beta1+0.25), beta0 = runif(1, beta0-0.25, beta0+0.25),
+                          alpha1 = runif(1, alpha1-0.25, alpha1+0.25), alpha0 = runif(1, alpha0-0.25, alpha0+0.25))}
+
+#Scenario 6: ISDM sparse DS & PO
+inits6 <- function(){list(N = Nst.S, sigma = runif(1, sigma-0.25, sigma+0.25), 
+                          beta1 = runif(1, beta1-0.25, beta1+0.25), beta0 = runif(1, beta0-0.25, beta0+0.25),
+                          alpha1 = runif(1, alpha1-0.25, alpha1+0.25), alpha0 = runif(1, alpha0-0.25, alpha0+0.25))}
+
+#Scenario 7: ISDM robust DS & sparse PO
+inits7 <- function(){list(N = Nst.R, sigma = runif(1, sigma-0.25, sigma+0.25), 
+                          beta1 = runif(1, beta1-0.25, beta1+0.25), beta0 = runif(1, beta0-0.25, beta0+0.25),
+                          alpha1 = runif(1, alpha1-0.25, alpha1+0.25), alpha0 = runif(1, alpha0-0.25, alpha0+0.25))}
+
+#Scenario 8: ISDM sparse DS & robust PO
+inits8 <- function(){list(N = Nst.S, sigma = runif(1, sigma-0.25, sigma+0.25), 
+                          beta1 = runif(1, beta1-0.25, beta1+0.25), beta0 = runif(1, beta0-0.25, beta0+0.25),
+                          alpha1 = runif(1, alpha1-0.25, alpha1+0.25), alpha0 = runif(1, alpha0-0.25, alpha0+0.25))}
 
 #------------#
 #-Parameters-#
 #------------#
 
-#Distance sampling model
-paramsDS <- c("Ntot", "beta0", "beta1", "sigma")
-
-#Presence only model
-paramsPO <- c("Ntot", "alpha0", "alpha1", "beta0", "beta1")
-
-#Integrated species distribution model
-paramsISDM <- c("Ntot", "alpha0", "alpha1", "beta0", "beta1", "sigma")
+params <- c("Ntot", "sigma", "alpha0", "alpha1", "beta0", "beta1")
 
 #-------------#
 #-MCMC values-#
