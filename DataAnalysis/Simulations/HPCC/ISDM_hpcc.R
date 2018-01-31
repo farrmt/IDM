@@ -393,14 +393,37 @@ na <- 1000
 #-Run each model-#
 #----------------#
 
-DS <- jagsUI(dataDS, initsDS, paramsDS, "DS.txt", n.thin=nt,
+#Scenario 1: Presence only robust
+S1 <- jagsUI(data1, inits1, params, "PO.txt", n.thin=nt, 
              n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na,  parallel = TRUE)
 
-PO <- jagsUI(dataPO, initsPO, paramsPO, "PO.txt", n.thin=nt,
+#Scenario 2: Presence only sparse
+S2 <- jagsUI(data2, inits2, params, "PO.txt", n.thin=nt, 
              n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na,  parallel = TRUE)
 
-ISDM <- jagsUI(dataISDM, initsISDM, paramsISDM, "ISDM.txt", n.thin=nt,
-               n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na,  parallel = TRUE)
+#Scenario 3: Distance sampling robust
+S3 <- jagsUI(data3, inits3, params, "DSalt.txt", n.thin=nt, 
+             n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na,  parallel = TRUE)
+
+#Scenario 4: Distance sampling robust
+S4 <- jagsUI(data4, inits4, params, "DSalt.txt", n.thin=nt, 
+             n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na,  parallel = TRUE)
+
+#Scenario 5: ISDM robust DS & PO
+S5 <- jagsUI(data5, inits5, params, "ISDMalt.txt", n.thin=nt, 
+             n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na,  parallel = TRUE)
+
+#Scenario 6: ISDM sparse DS & PO
+S6 <- jagsUI(data6, inits6, params, "ISDMalt.txt", n.thin=nt, 
+             n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na,  parallel = TRUE)
+
+#Scenario 7: ISDM robust DS & sparse PO
+S7 <- jagsUI(data7, inits7, params, "ISDMalt.txt", n.thin=nt, 
+             n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na,  parallel = TRUE)
+
+#Scenario 8: ISDM sparse DS & robust PO
+S8 <- jagsUI(data8, inits8, params, "ISDMalt.txt", n.thin=nt, 
+             n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na,  parallel = TRUE)
 
 #----------------------------------#
 #-Save values from each simulation-#
