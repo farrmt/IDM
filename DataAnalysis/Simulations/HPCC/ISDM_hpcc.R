@@ -14,6 +14,10 @@ expit <- function(eta)
   1/(1+exp(-eta))
 }
 
+logit <- function(pp) 
+{ 
+  log(pp) - log(1-pp) 
+}
 #--------------------------#
 #-Create Sampling Region B-#
 #--------------------------#
