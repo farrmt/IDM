@@ -30,6 +30,9 @@ px <- 1
 px.m <- seq(px/2, W - px/2, px)
 #Expand mid-point to entire grid
 gr <- expand.grid(px.m, px.m)
+#Load distance to pixels for robust and sparse
+load(file = "dist.R.Rdata")
+load(file = "dist.S.Rdata")
 
 #-------------------------------------#
 #-Draw environmental covariate values-#
@@ -111,107 +114,179 @@ u2 <- gr[s,2]
 #-Simulate distance sampling-#
 #----------------------------#
 
-#Transects
-x.line <- rep(c(25,75), each = W)
-y.line <- rep(seq(0.5, W-0.5, 1), 2)
+#Alternate transects
+x.line.R <- rep(c(25,50,75), each = W) #Robust
+y.line.R <- rep(seq(0.5, W-0.5, 1), 3) #Robust
+x.line.S <- rep(c(25, 75), each = 60) #Sparse
+y.line.S <- rep(c(seq(11, 40, 1), seq(61, 90, 1)), 2) #Sparse
+
 #Number of points in transect line
-J <- length(x.line)
+# J.R <- length(x.line.R)
+# J.S <- length(x.line.S)
 #Distance array for all points on transect line
-d <- array(NA, dim = c(W*W, J))
+# d.R <- array(NA, dim = c(W*W, J.R))
+# d.S <- array(NA, dim = c(W*W, J.S))
+
 #Distance to nearest transect
-dist <- NULL
+# dist.R <- NULL
+# dist.S <- NULL
 #Simulate above quantities
-for(g in 1:(W*W)){
-  for(j in 1:J){
-    d[g,j] <- sqrt((gr[g,1] - x.line[j])^2 + (gr[g,2] - y.line[j])^2)
-  }
-  dist[g] <- min(d[g,])
-}
+# for(g in 1:(W*W)){
+#   for(jr in 1:J.R){
+#     d.R[g,jr] <- sqrt((gr[g,1] - x.line.R[jr])^2 + (gr[g,2] - y.line.R[jr])^2)
+#   }
+#   for(js in 1:J.S){
+#     d.S[g,js] <- sqrt((gr[g,1] - x.line.S[js])^2 + (gr[g,2] - y.line.S[js])^2)
+#   }
+#   dist.R[g] <- min(d.R[g,])
+#   dist.S[g] <- min(d.S[g,])
+# }
 
 #Detection probability for distance sampling
-p.ds <- rep(NA, N)
+pds.R <- rep(NA, N)
+pds.S <- rep(NA, N)
 #Distance for each individual
-dst <- dist[s]
+dst.R <- dist.R[s]
+dst.S <- dist.S[s]
 #Individual presence/absence based on distance sampling
-y.ds <- NULL
+yds.R <- NULL
+yds.S <- NULL
 #Simulate distance sampling
-p.ds <- exp(-dst * dst / (2 * sigma * sigma))
-y.ds <- rbinom(N, 1, p.ds)
-y.ds[dst>12] <- 0
+pds.R <- exp(-dst.R * dst.R / (2 * sigma * sigma))
+pds.S <- exp(-dst.S * dst.S / (2 * sigma * sigma))
+yds.R <- rbinom(N, 1, pds.R)
+yds.S <- rbinom(N, 1, pds.S)
+yds.R[dst.R>12] <- 0
+yds.S[dst.S>12] <- 0
+
 #Coordinates of detected individuals
-uxds <- u1[y.ds == 1]
-uyds <- u2[y.ds == 1]
+uxds.R <- u1[yds.R == 1]
+uyds.R <- u2[yds.R == 1]
+uxds.S <- u1[yds.S == 1]
+uyds.S <- u2[yds.S == 1]
 #Distance of detected individuals
-dst <- dst[y.ds == 1]
+dst.R <- dst.R[yds.R == 1]
+dst.S <- dst.S[yds.S == 1]
 #Pixel ID
-pixds <- s[y.ds == 1]
+pixds.R <- s[yds.R == 1]
+pixds.S <- s[yds.S == 1]
 #Distance class length
 v <- 1
 #Transect half-width
 B <- 12
 #Midpoint of distance class
-mdpt <- seq(0.5, 12, 1)
+mdpt <- seq(0.5, 13, 1)
 #Number of distance class
-nD <- length(mdpt)
+nD <- length(mdpt)-1
 #Pixels covered by distance sampling (transect half-width is 10 pixels)
-coverage <- which(dist <= B)
-#Number of detected individuals
-y.ds <- sum(y.ds)
+coverage.R <- which(dist.R <= B)
+coverage.S <- which(dist.S <= B)
 #Distance class of detected individuals
-dclass <- NULL
-for(i in 1:y.ds){
+dclass.R <- NULL
+dclass.S <- NULL
+for(i in 1:sum(yds.R)){
   for(k in 1:nD){
-    if(mdpt[k] - 0.5 <= dst[i] && dst[i] < mdpt[k+1] - 0.5)
-      dclass[i] <- k
+    if(mdpt[k] - 0.5 <= dst.R[i] && dst.R[i] < mdpt[k+1] - 0.5)
+      dclass.R[i] <- k
   }
 }
+for(i in 1:sum(yds.S)){
+  for(k in 1:nD){
+    if(mdpt[k] - 0.5 <= dst.S[i] && dst.S[i] < mdpt[k+1] - 0.5)
+      dclass.S[i] <- k
+  }
+}
+
+regionC.R <- as.data.frame(coverage.R)
+colnames(regionC.R) <- "pixel"
+regionC.S <- as.data.frame(coverage.S)
+colnames(regionC.S) <- "pixel"
+C.R <- length(coverage.R)
+C.S <- length(coverage.S)
+dst.R <- dist.R[coverage.R] 
+dst.S <- dist.S[coverage.S] 
+yds.R <- as.data.frame(table(pixds.R))
+yds.S <- as.data.frame(table(pixds.S))
+yds.R$pixds.R <- as.numeric(as.character(yds.R$pixds.R))
+colnames(yds.R) <- c("pixel", "freq")
+tmp <- full_join(yds.R, regionC.R, by = "pixel")
+tmp <- tmp%>%arrange(pixel)
+yds.R <- tmp$freq
+yds.R[is.na(yds.R)] <- 0
+yds.S$pixds.S <- as.numeric(as.character(yds.S$pixds.S))
+colnames(yds.S) <- c("pixel", "freq")
+tmp <- full_join(yds.S, regionC.S, by = "pixel")
+tmp <- tmp%>%arrange(pixel)
+yds.S <- tmp$freq
+yds.S[is.na(yds.S)] <- 0
 
 #---------------------------------------#
 #-Draw covariate value for PO detection-#
 #---------------------------------------#
 #Environmental covariate on PO detection (Multivariate normal)
 #Mean of x-dim distribution
-mu.x <- runif(1,20,80)
+mu.x <- 50
 #Mean of y-dim distribution
-mu.y <- runif(1,20,80)
+mu.y <- 50
 #Variance of x-dim distribution
-sigma.x <- 0.25*abs(100)
+sigmax.R <- 0.5*abs(W) #Robust PO
+sigmax.S <- 0.05*abs(W) #Sparse PO
 #Variance of y-dim distribution
-sigma.y <- 0.25*abs(100)
+sigmay.R <- 0.5*abs(W)
+sigmay.S <- 0.05*abs(W)
 #Covariance of x-dim and y-dim distributions
 rho.xy <- 0.1
 mu <- c(mu.x, mu.y)
 #Covariance matrix
-Sigmaxy <- matrix(c(sigma.x^2, rep(rho.xy*sigma.x*sigma.y, 2), sigma.y^2), ncol=2)
+Sigmaxy.R <- matrix(c(sigmax.R^2, rep(rho.xy*sigmax.R*sigmay.R, 2), sigmay.R^2), ncol=2)
+Sigmaxy.S <- matrix(c(sigmax.S^2, rep(rho.xy*sigmax.S*sigmay.S, 2), sigmay.S^2), ncol=2)
 
-w <- dmvnorm(gr, mean=mu, sigma=Sigmaxy)
-w <- (w - mean(w))/sd(w)
+w.R <- dmvnorm(gr, mean=mu, sigma=Sigmaxy.R)
+w.R <- (w.R - mean(w.R))/sd(w.R)
+w.S <- dmvnorm(gr, mean=mu, sigma=Sigmaxy.S)
+w.S <- (w.S - mean(w.S))/sd(w.S)
 
 #----------------------------------#
 #-Simulate opportunistic surveying-#
 #----------------------------------#
 
 #Detection probability of PO
-p.po <- expit(alpha1*w + alpha0) * error
+ppo.R <- expit(alpha1*w.R + alpha0) * error
+ppo.S <- expit(alpha1*w.S + alpha0) * error
 #Individuals detected in PO
-y.po <- NULL
+ypo.R <- NULL
+ypo.S <- NULL
 for(i in 1:N){
-  y.po[i] <- rbinom(1, 1, p.po[s[i]])
+  ypo.R[i] <- rbinom(1, 1, ppo.R[s[i]])
+  ypo.S[i] <- rbinom(1, 1, ppo.S[s[i]])
 }
+
 #Pixel ID for PO
-pixpo <- s[y.po == 1]
+pixpo.R <- s[ypo.R == 1]
+pixpo.S <- s[ypo.S == 1]
+
 #Coord of detected individuals
-uxpo <- u1[y.po == 1]
-uypo <- u2[y.po == 1]
+uxpo.R <- u1[ypo.R == 1]
+uypo.R <- u2[ypo.R == 1]
+uxpo.S <- u1[ypo.S == 1]
+uypo.S <- u2[ypo.S == 1]
+
 #Number of PO detections per pixel
-y.po <- as.data.frame(table(pixpo))
-y.po$pixpo <- as.numeric(as.character(y.po$pixpo))
+ypo.R <- as.data.frame(table(pixpo.R))
+ypo.S <- as.data.frame(table(pixpo.S))
+ypo.R$pixpo.R <- as.numeric(as.character(ypo.R$pixpo.R))
+ypo.S$pixpo.S <- as.numeric(as.character(ypo.S$pixpo.S))
 #Vector of pixels with PO detections
 tmp <- rep(0, (W*W))
-for(i in 1:length(y.po[,1])){
-  tmp[y.po$pixpo[i]] <- y.po$Freq[i]
+for(i in 1:length(ypo.R[,1])){
+  tmp[ypo.R$pixpo[i]] <- ypo.R$Freq[i]
 }
-y.po <- tmp
+ypo.R <- tmp
+tmp <- rep(0, (W*W))
+for(i in 1:length(ypo.S[,1])){
+  tmp[ypo.S$pixpo[i]] <- ypo.S$Freq[i]
+}
+ypo.S <- tmp
 
 #----------------------------------#
 #-Compile BUGS data for each model-#
