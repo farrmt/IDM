@@ -4,6 +4,7 @@
 
 library(mvtnorm)
 library(jagsUI)
+library(dplyr)
 
 #------------------------------#
 #-Functions used in simulation-#
@@ -439,19 +440,19 @@ Out[z,1,5] <- alpha0
 Out[z,1,6] <- alpha1
 
 for(sc in 2:9){
-  Out[z,sc,1] <- S[[sc-1]]$mean$Ntot
-  Out[z,sc,2] <- S[[sc-1]]$mean$beta0
-  Out[z,sc,3] <- S[[sc-1]]$mean$beta1
-  Out[z,sc,4] <- S[[sc-1]]$mean$sigma
-  Out[z,sc,5] <- S[[sc-1]]$mean$alpha0
-  Out[z,sc,6] <- S[[sc-1]]$mean$alpha1
+    tryCatch({Out[z,sc,1] <- S[[sc-1]]$mean$Ntot}, error = function(e){})
+    tryCatch({Out[z,sc,2] <- S[[sc-1]]$mean$beta0}, error = function(e){})
+    tryCatch({Out[z,sc,3] <- S[[sc-1]]$mean$beta1}, error = function(e){})
+    tryCatch({Out[z,sc,4] <- S[[sc-1]]$mean$sigma}, error = function(e){})
+    tryCatch({Out[z,sc,5] <- S[[sc-1]]$mean$alpha0}, error = function(e){})
+    tryCatch({Out[z,sc,6] <- S[[sc-1]]$mean$alpha1}, error = function(e){})
   
-  Out[z,sc+8,1] <- S[[sc]]$Rhat$Ntot
-  Out[z,sc+8,2] <- S[[sc]]$Rhat$beta0
-  Out[z,sc+8,3] <- S[[sc]]$Rhat$beta1
-  Out[z,sc+8,4] <- S[[sc]]$Rhat$sigma
-  Out[z,sc+8,5] <- S[[sc]]$Rhat$alpha0
-  Out[z,sc+8,6] <- S[[sc]]$Rhat$alpha1
+    tryCatch({Out[z,sc+8,1] <- S[[sc-1]]$Rhat$Ntot}, error = function(e){})
+    tryCatch({Out[z,sc+8,2] <- S[[sc-1]]$Rhat$beta0}, error = function(e){})
+    tryCatch({Out[z,sc+8,3] <- S[[sc-1]]$Rhat$beta1}, error = function(e){})
+    tryCatch({Out[z,sc+8,4] <- S[[sc-1]]$Rhat$sigma}, error = function(e){})
+    tryCatch({Out[z,sc+8,5] <- S[[sc-1]]$Rhat$alpha0}, error = function(e){})
+    tryCatch({Out[z,sc+8,6] <- S[[sc-1]]$Rhat$alpha1}, error = function(e){})
 }
 
 }#End simulation
