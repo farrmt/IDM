@@ -83,9 +83,8 @@ sigma <- 2.5 #Medium detection (26%)
 iter <- 1
 
 #True and estimated parameter values to save
-Out <- array(NA, dim = c(iter, 7, 6), 
-             dimnames = list(NULL, c("Truth", "DS", "PO", "ISDM", "DS.Rhat", "PO.Rhat", "ISDM.Rhat"),
-                             c("N", "beta0", "beta1", "sigma", "alpha0", "alpha1")))
+Out <- array(NA, dim = c(iter, 17, 6), 
+             dimnames = list(NULL, NULL, c("N", "beta0", "beta1", "sigma", "alpha0", "alpha1")))
 
 #------------------#
 #-Begin Simulation-#
@@ -393,36 +392,38 @@ na <- 1000
 #-Run each model-#
 #----------------#
 
+S <- list()
+
 #Scenario 1: Presence only robust
-S1 <- jagsUI(data1, inits1, params, "PO.txt", n.thin=nt, 
+S[[1]] <- jagsUI(data1, inits1, params, "PO.txt", n.thin=nt, 
              n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na,  parallel = TRUE)
 
 #Scenario 2: Presence only sparse
-S2 <- jagsUI(data2, inits2, params, "PO.txt", n.thin=nt, 
+S[[2]] <- jagsUI(data2, inits2, params, "PO.txt", n.thin=nt, 
              n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na,  parallel = TRUE)
 
 #Scenario 3: Distance sampling robust
-S3 <- jagsUI(data3, inits3, params, "DSalt.txt", n.thin=nt, 
+S[[3]] <- jagsUI(data3, inits3, params, "DSalt.txt", n.thin=nt, 
              n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na,  parallel = TRUE)
 
 #Scenario 4: Distance sampling robust
-S4 <- jagsUI(data4, inits4, params, "DSalt.txt", n.thin=nt, 
+S[[4]] <- jagsUI(data4, inits4, params, "DSalt.txt", n.thin=nt, 
              n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na,  parallel = TRUE)
 
 #Scenario 5: ISDM robust DS & PO
-S5 <- jagsUI(data5, inits5, params, "ISDMalt.txt", n.thin=nt, 
+S[[5]] <- jagsUI(data5, inits5, params, "ISDMalt.txt", n.thin=nt, 
              n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na,  parallel = TRUE)
 
 #Scenario 6: ISDM sparse DS & PO
-S6 <- jagsUI(data6, inits6, params, "ISDMalt.txt", n.thin=nt, 
+S[[6]] <- jagsUI(data6, inits6, params, "ISDMalt.txt", n.thin=nt, 
              n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na,  parallel = TRUE)
 
 #Scenario 7: ISDM robust DS & sparse PO
-S7 <- jagsUI(data7, inits7, params, "ISDMalt.txt", n.thin=nt, 
+S[[7]] <- jagsUI(data7, inits7, params, "ISDMalt.txt", n.thin=nt, 
              n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na,  parallel = TRUE)
 
 #Scenario 8: ISDM sparse DS & robust PO
-S8 <- jagsUI(data8, inits8, params, "ISDMalt.txt", n.thin=nt, 
+S[[8]] <- jagsUI(data8, inits8, params, "ISDMalt.txt", n.thin=nt, 
              n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na,  parallel = TRUE)
 
 #----------------------------------#
@@ -436,45 +437,23 @@ Out[z,1,3] <- beta1
 Out[z,1,4] <- sigma
 Out[z,1,5] <- alpha0
 Out[z,1,6] <- alpha1
+
+for(sc in 2:9){
+  Out[z,sc,1] <- S[[sc-1]]$mean$Ntot
+  Out[z,sc,2] <- S[[sc-1]]$mean$beta0
+  Out[z,sc,3] <- S[[sc-1]]$mean$beta1
+  Out[z,sc,4] <- S[[sc-1]]$mean$sigma
+  Out[z,sc,5] <- S[[sc-1]]$mean$alpha0
+  Out[z,sc,6] <- S[[sc-1]]$mean$alpha1
   
-#Estimated distance sampling parameter values
-Out[z,2,1] <- DS$mean$Ntot
-Out[z,2,2] <- DS$mean$beta0
-Out[z,2,3] <- DS$mean$beta1
-Out[z,2,4] <- DS$mean$sigma
+  Out[z,sc+8,1] <- S[[sc]]$Rhat$Ntot
+  Out[z,sc+8,2] <- S[[sc]]$Rhat$beta0
+  Out[z,sc+8,3] <- S[[sc]]$Rhat$beta1
+  Out[z,sc+8,4] <- S[[sc]]$Rhat$sigma
+  Out[z,sc+8,5] <- S[[sc]]$Rhat$alpha0
+  Out[z,sc+8,6] <- S[[sc]]$Rhat$alpha1
+}
 
-Out[z,5,1] <- DS$Rhat$Ntot
-Out[z,5,2] <- DS$Rhat$beta0
-Out[z,5,3] <- DS$Rhat$beta1
-Out[z,5,4] <- DS$Rhat$sigma
-
-#Estimated presence only parameter values
-Out[z,3,1] <- PO$mean$Ntot
-Out[z,3,2] <- PO$mean$beta0
-Out[z,3,3] <- PO$mean$beta1
-Out[z,3,5] <- PO$mean$alpha0
-Out[z,3,6] <- PO$mean$alpha1
-
-Out[z,6,1] <- PO$Rhat$Ntot
-Out[z,6,2] <- PO$Rhat$beta0
-Out[z,6,3] <- PO$Rhat$beta1
-Out[z,6,5] <- PO$Rhat$alpha0
-Out[z,6,6] <- PO$Rhat$alpha1
-
-#Estimated integrated species distribution modeling parameter values
-Out[z,4,1] <- ISDM$mean$Ntot
-Out[z,4,2] <- ISDM$mean$beta0
-Out[z,4,3] <- ISDM$mean$beta1
-Out[z,4,4] <- ISDM$mean$sigma
-Out[z,4,5] <- ISDM$mean$alpha0
-Out[z,4,6] <- ISDM$mean$alpha1
-
-Out[z,7,1] <- ISDM$Rhat$Ntot
-Out[z,7,2] <- ISDM$Rhat$beta0
-Out[z,7,3] <- ISDM$Rhat$beta1
-Out[z,7,4] <- ISDM$Rhat$sigma
-Out[z,7,5] <- ISDM$Rhat$alpha0
-Out[z,7,6] <- ISDM$Rhat$alpha1
 }#End simulation
 end.time <- Sys.time()
 Time <- end.time - start.time
