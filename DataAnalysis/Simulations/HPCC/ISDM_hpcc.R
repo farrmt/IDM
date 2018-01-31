@@ -39,11 +39,45 @@ gr <- expand.grid(px.m, px.m)
 load(file = "xcov.Rdata")
 
 #--------------------------------#
+#-Parameter values for scenarios-#
+#--------------------------------#
+
+#Intercept parameter for intensity function
+# beta0 <- log(0.05) #Low Abundance (500 individuals; 0.01/pixel)
+beta0 <- log(0.5) #Medium Abundance (5,000 individuals; 1/pixel)
+# beta0 <- log(5) #High Abundance (50,000 individuals; 10/pixel)
+
+#Effect parameter of enivornment on intensity
+# beta1 <- 0 #No effect on intensity (i.e., homogenous)
+# beta1 <- 0.5 #Weak effect on intensity X 1.14 (14% increase)
+# beta1 <- 1 #Meadium effect on intensity X 1.66 (66% inrease)
+beta1 <- 1.25 #Strong effect on intensity X 2.19 (119% increase)
+
+#Intercept parameter for prensence only (PO) detection
+# alpha0 <- logit(0.1) #Low detection (10%)
+# alpha0 <- logit(0.25) #Medium detection (25%)
+alpha0 <- logit(0.5) #High detection (50%)
+
+#Effect parameter of environment on PO detection
+# alpha1 <- 0 #No effect on PO detection
+alpha1 <- 2.25 #Weak effect on PO detection X 0.86 (14% decrease)
+# alpha1 <- 5 #Medium effect on PO detection X 0.66 (34% decrease)
+# alpha1 <- 10 #Strong effect on PO detection X 0.4 (60% decrease)
+
+#Unobserved sampling error
+error <- 0.4
+
+#Scale parameter for DS detection
+# sigma <- 1 #Low detection (10%)
+sigma <- 2.5 #Medium detection (26%)
+# sigma <- 5 #High detection (50%)
+
+#--------------------------------#
 #-Values to save from simulation-#
 #--------------------------------#
 
 #Number of simulation iterations
-iter <- 4
+iter <- 1
 
 #True and estimated parameter values to save
 Out <- array(NA, dim = c(iter, 7, 6), 
@@ -56,23 +90,6 @@ Out <- array(NA, dim = c(iter, 7, 6),
 
 start.time <- Sys.time()
 for(z in 1:iter){
-
-#-----------------------#
-#-Draw parameter values-#
-#-----------------------#
-
-#Intercept parameter for intensity function
-beta0 <- runif(1, -1, -0.75)
-#Effect parameter of enivornment on intensity
-beta1 <- runif(1, 0.85, 1.15)
-#Intercept parameter for prensence only (PO) detection
-alpha0 <- runif(1, -1.5, 0)
-#Effect parameter of environment on PO detection
-alpha1 <- runif(1, 1, 2)
-#Unobserved sampling error
-error <- 0.3
-#Scale parameter for DS detection
-sigma <- runif(1, 1.75, 2.25)
 
 #--------------------------------#
 #-Simulate number of individuals-#
