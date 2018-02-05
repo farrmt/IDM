@@ -1,3 +1,8 @@
+#NOTES:
+#1 change PO sampling to sample at different rates check koshkina [check]
+#2 check PO with baseline (alpha0) at 100% / idea for figure [check]
+#3 reduce DS.S
+
 #-----------------------#
 #-Set working directory-#
 #-----------------------#
@@ -9,6 +14,8 @@ setwd("C:/Users/farrm/Documents/GitHub/ISDM/DataAnalysis/Simulations")
 
 library(mvtnorm)
 library(jagsUI)
+library(dplyr)
+library(raster)
 
 #------------------------------#
 #-Functions used in simulation-#
@@ -50,7 +57,6 @@ gr <- expand.grid(px.m, px.m)
 #-----------------------#
 
 #Intercept parameter for intensity function
-
 # beta0 <- log(0.05) #Low Abundance (500 individuals; 0.01/pixel)
 beta0 <- log(0.5) #Medium Abundance (5,000 individuals; 1/pixel)
 # beta0 <- log(5) #High Abundance (50,000 individuals; 10/pixel)
@@ -63,17 +69,18 @@ beta1 <- 1.25 #Strong effect on intensity X 2.19 (119% increase)
 
 #Intercept parameter for prensence only (PO) detection
 # alpha0 <- logit(0.1) #Low detection (10%)
-# alpha0 <- logit(0.25) #Medium detection (25%)
-alpha0 <- logit(0.5) #High detection (50%)
+# alpha0 <- logit(0.5) #Medium detection (50%)
+alpha0 <- logit(0.99) #High detection (100%)
 
 #Effect parameter of environment on PO detection
 # alpha1 <- 0 #No effect on PO detection
-alpha1 <- 2.25 #Weak effect on PO detection X 0.86 (14% decrease)
-# alpha1 <- 5 #Medium effect on PO detection X 0.66 (34% decrease)
-# alpha1 <- 10 #Strong effect on PO detection X 0.4 (60% decrease)
+# alpha1 <- 2.25 #Weak effect on PO detection
+# alpha1 <- 5 #Medium effect on PO detection
+alpha1 <- 10 #Strong effect on PO detection
 
 #Unobserved sampling error
-error <- 0.4
+error.R <- 0.5
+error.S <- 0.3
 
 #Scale parameter for DS detection
 # sigma <- 1 #Low detection (10%)
@@ -250,50 +257,49 @@ mu.x <- 50
 #Mean of y-dim distribution
 mu.y <- 50
 #Variance of x-dim distribution
-sigmax.R <- 0.5*abs(W) #Robust PO
-sigmax.S <- 0.05*abs(W) #Sparse PO
+sigmax <- 0.5*abs(W) #Robust PO
 #Variance of y-dim distribution
-sigmay.R <- 0.5*abs(W)
-sigmay.S <- 0.05*abs(W)
+sigmay <- 0.5*abs(W)
 #Covariance of x-dim and y-dim distributions
 rho.xy <- 0.1
 mu <- c(mu.x, mu.y)
 #Covariance matrix
-Sigmaxy.R <- matrix(c(sigmax.R^2, rep(rho.xy*sigmax.R*sigmay.R, 2), sigmay.R^2), ncol=2)
-Sigmaxy.S <- matrix(c(sigmax.S^2, rep(rho.xy*sigmax.S*sigmay.S, 2), sigmay.S^2), ncol=2)
+Sigmaxy <- matrix(c(sigmax^2, rep(rho.xy*sigmax*sigmay, 2), sigmay^2), ncol=2)
 
-w.R <- dmvnorm(gr, mean=mu, sigma=Sigmaxy.R)
-w.R <- (w.R - mean(w.R))/sd(w.R)
-w.S <- dmvnorm(gr, mean=mu, sigma=Sigmaxy.S)
-w.S <- (w.S - mean(w.S))/sd(w.S)
+w <- dmvnorm(gr, mean=mu, sigma=Sigmaxy)
+w <- (w - mean(w))/sd(w)
 #Visualize PO detection
-image(rasterFromXYZ(cbind(gr,w.R)), col=topo.colors(20))
-image(rasterFromXYZ(cbind(gr,w.S)), col=topo.colors(20))
+image(rasterFromXYZ(cbind(gr,w)), col=topo.colors(20))
 
 #----------------------------------#
 #-Simulate opportunistic surveying-#
 #----------------------------------#
 
 #Detection probability of PO
-ppo.R <- expit(alpha1*w.R + alpha0) * error
-ppo.S <- expit(alpha1*w.S + alpha0) * error
+ppo <- expit(alpha1*w + alpha0)
+
 #Individuals detected in PO
-ypo.R <- NULL
-ypo.S <- NULL
+ypa <- NULL
 for(i in 1:N){
-  ypo.R[i] <- rbinom(1, 1, ppo.R[s[i]])
-  ypo.S[i] <- rbinom(1, 1, ppo.S[s[i]])
+  ypa[i] <- rbinom(1, 1, ppo[s[i]])
 }
 
-#Pixel ID for PO
-pixpo.R <- s[ypo.R == 1]
-pixpo.S <- s[ypo.S == 1]
+#Pixel ID for true presence
+pixpa <- s[ypa == 1]
 
-#Coord of detected individuals
-uxpo.R <- u1[ypo.R == 1]
-uypo.R <- u2[ypo.R == 1]
-uxpo.S <- u1[ypo.S == 1]
-uypo.S <- u2[ypo.S == 1]
+#Coord of true presence
+uxpa <- u1[ypa == 1]
+uypa <- u2[ypa == 1]
+
+#Unobserved sampling / PO pixel ID
+pixpo.R <- sample(pixpa, length(pixpa)*error.R, replace = FALSE)
+pixpo.S <- sample(pixpa, length(pixpa)*error.S, replace = FALSE)
+
+#Coord of PO
+uxpo.R <- u1[which(s%in%pixpo.R)]
+uypo.R <- u2[which(s%in%pixpo.R)]
+uxpo.S <- u1[which(s%in%pixpo.S)]
+uypo.S <- u2[which(s%in%pixpo.S)]
 
 #Number of PO detections per pixel
 ypo.R <- as.data.frame(table(pixpo.R))
@@ -314,10 +320,12 @@ ypo.S <- tmp
 #Visualize covariate
 image(rasterFromXYZ(cbind(gr, x)), col = topo.colors(20))
 points(u1, u2, col = 'black', pch = 20)
+points(uxpa, uypa, col = "orange", pch = 20)
 points(uxpo.R, uypo.R, col = 'red', pch = 20)
 
 image(rasterFromXYZ(cbind(gr, x)), col = topo.colors(20))
 points(u1, u2, col = 'black', pch = 20)
+points(uxpa, uypa, col = "orange", pch = 20)
 points(uxpo.S, uypo.S, col = 'red', pch = 20)
 
 #----------------------------------------------#
