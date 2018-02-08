@@ -2,6 +2,7 @@
 #1 change PO sampling to sample at different rates check koshkina [check]
 #2 check PO with baseline (alpha0) at 100% / idea for figure [check]
 #3 reduce DS.S
+#4 place cap on the end of DS.S and fix coverage.S
 
 #-----------------------#
 #-Set working directory-#
@@ -57,35 +58,35 @@ gr <- expand.grid(px.m, px.m)
 #-----------------------#
 
 #Intercept parameter for intensity function
-# beta0 <- log(0.05) #Low Abundance (500 individuals; 0.01/pixel)
-beta0 <- log(0.5) #Medium Abundance (5,000 individuals; 1/pixel)
+beta0 <- log(0.05) #Low Abundance (500 individuals; 0.01/pixel)
+# beta0 <- log(0.5) #Medium Abundance (5,000 individuals; 1/pixel)
 # beta0 <- log(5) #High Abundance (50,000 individuals; 10/pixel)
 
 #Effect parameter of enivornment on intensity
 # beta1 <- 0 #No effect on intensity (i.e., homogenous)
 # beta1 <- 0.5 #Weak effect on intensity X 1.14 (14% increase)
-# beta1 <- 1 #Meadium effect on intensity X 1.66 (66% inrease)
-beta1 <- 1.25 #Strong effect on intensity X 2.19 (119% increase)
+beta1 <- 1 #Meadium effect on intensity X 1.66 (66% inrease)
+# beta1 <- 1.25 #Strong effect on intensity X 2.19 (119% increase)
 
 #Intercept parameter for prensence only (PO) detection
-# alpha0 <- logit(0.1) #Low detection (10%)
+alpha0 <- logit(0.1) #Low detection (10%)
 # alpha0 <- logit(0.5) #Medium detection (50%)
-alpha0 <- logit(0.99) #High detection (100%)
+# alpha0 <- logit(0.99) #High detection (100%)
 
 #Effect parameter of environment on PO detection
 # alpha1 <- 0 #No effect on PO detection
 # alpha1 <- 2.25 #Weak effect on PO detection
-# alpha1 <- 5 #Medium effect on PO detection
-alpha1 <- 10 #Strong effect on PO detection
+alpha1 <- 5 #Medium effect on PO detection
+# alpha1 <- 10 #Strong effect on PO detection
 
 #Unobserved sampling error
 error.R <- 0.5
 error.S <- 0.3
 
 #Scale parameter for DS detection
-# sigma <- 1 #Low detection (10%)
-sigma <- 2.5 #Medium detection (26%)
-# sigma <- 5 #High detection (50%)
+sigma <- 0.5 #Low detection
+# sigma <- 1 #Medium detection
+# sigma <- 2.5 #High detection
 
 #-------------------------------------#
 #-Draw environmental covariate values-#
@@ -166,8 +167,8 @@ load(file = "dist.S.Rdata")
 pds.R <- rep(NA, N)
 pds.S <- rep(NA, N)
 #Distance for each individual
-dst.R <- dist.R[s]
-dst.S <- dist.S[s]
+dst.R <- dist.R[s] 
+dst.S <- dist.R[s]
 #Individual presence/absence based on distance sampling
 yds.R <- NULL
 yds.S <- NULL
@@ -175,9 +176,11 @@ yds.S <- NULL
 pds.R <- exp(-dst.R * dst.R / (2 * sigma * sigma))
 pds.S <- exp(-dst.S * dst.S / (2 * sigma * sigma))
 yds.R <- rbinom(N, 1, pds.R)
-yds.S <- rbinom(N, 1, pds.S)
+yds.S <- rbinom(length(dst.S), 1, pds.S)
 yds.R[dst.R>12] <- 0
 yds.S[dst.S>12] <- 0
+#Removes observations outside of DS boundary
+yds.S[!(s%in%c(which(gr[,2]>10 & gr[,2]<41), which(gr[,2] > 60 & gr[,2] < 91)))] <- 0
 
 #Coordinates of detected individuals
 uxds.R <- u1[yds.R == 1]
@@ -363,7 +366,7 @@ str(data6 <- list(x = x, G = (W*W), C = C.S, dst = dst.S,
 #Scenario 7: ISDM robust DS & sparse PO
 str(data7 <- list(x = x, G = (W*W), C = C.R, dst = dst.R,
                      nD = nD, v = v, B = B, mdpt = mdpt, dclass = dclass.R, nds = sum(yds.R), 
-                     y.ds = yds.R, coverage = coverage.R, w = w.S, y.po = ypo.S))
+                     y.ds = yds.R, coverage = coverage.R, w = w, y.po = ypo.S))
 
 #Scenario 8: ISDM sparse DS & robust PO
 str(data8 <- list(x = x, G = (W*W), C = C.S, dst = dst.S,
