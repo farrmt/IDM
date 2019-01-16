@@ -38,8 +38,6 @@ px <- 1
 px.m <- seq(px/2, W - px/2, px)
 #Expand mid-point to entire grid
 gr <- expand.grid(px.m, px.m)
-#Load distance to pixels
-load(file = "dist.Rdata")
 
 #-----------------------#
 #-Create Transect Units-#
@@ -52,6 +50,31 @@ tu.m <- seq(tu/2, W - tu/2, tu)
 #Expand mid-point to entire grid
 grt <- expand.grid(tu.m, tu.m)
 
+#---------------------------#
+#-Calculate pixel distances-#
+#---------------------------#
+
+#All possible transects
+# x.line <- rep(tu.m, each = W)
+# y.line <- rep(seq(0.5, W-0.5, 1), 10)
+# line <- cbind(x.line, y.line)
+# #Number of points in transect line
+# J <- length(x.line)
+# #Distance array for all points on transect line
+# d <- array(NA, dim = c(W*W, J))
+# #Distance to nearest transect
+# dist <- NULL
+# #Simulate above quantities
+# for(g in 1:(W*W)){
+#   for(j in 1:J){
+#     d[g,j] <- sqrt((gr[g,1] - x.line[j])^2 + (gr[g,2] - y.line[j])^2)
+#   }
+#   dist[g] <- min(d[g,])
+# }
+
+#Load distance to pixels as above code is expensive
+load(file = "dist.Rdata")
+
 #-------------------------------------#
 #-Draw environmental covariate values-#
 #-------------------------------------#
@@ -60,6 +83,7 @@ grt <- expand.grid(tu.m, tu.m)
 #V <- exp(-e2dist(gr, gr))
 #Covariate values from a correlated multivariate normal (pg.534 AHM)
 #x <- as.vector(t(chol(V))%*%rnorm(W^2))
+
 #Load x covariate as above code is expensive
 load(file = "xcov.Rdata")
 
@@ -133,24 +157,6 @@ for(i in 2:nts){
 #----------------------------#
 #-Simulate distance sampling-#
 #----------------------------#
-
-# #All possible transects
-# x.line <- rep(tu.m, each = W)
-# y.line <- rep(seq(0.5, W-0.5, 1), 10)
-# line <- cbind(x.line, y.line)
-# #Number of points in transect line
-# J <- length(x.line)
-# #Distance array for all points on transect line
-# d <- array(NA, dim = c(W*W, J))
-# #Distance to nearest transect
-# dist <- NULL
-# #Simulate above quantities
-# for(g in 1:(W*W)){
-#   for(j in 1:J){
-#     d[g,j] <- sqrt((gr[g,1] - x.line[j])^2 + (gr[g,2] - y.line[j])^2)
-#   }
-#   dist[g] <- min(d[g,])
-# }
 
 #Sampled pixels and corresponding distances
 fill <- seq(1,5100,by=100)
