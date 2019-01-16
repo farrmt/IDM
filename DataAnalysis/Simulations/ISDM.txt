@@ -1,0 +1,37 @@
+
+    model{ 
+    
+    #--------#
+    #-Priors-#
+    #--------#
+
+    #Scale parameter DS
+    sigma ~ dunif(0, 10)
+    #Intercept intensity
+    beta0 ~ dnorm(0, 0.1)
+    #Effect intensity
+    beta1 ~ dnorm(0, 0.1)
+    #Intercept PO detection
+    alpha0 ~ dnorm(0, 0.368)
+    #Effect PO detection
+    alpha1 ~ dnorm(0, 0.368)
+    
+    #------------#
+    #-Likelihood-#
+    #------------#
+
+    for(g in 1:G){
+    lambda[g] <- exp(beta0 + beta1 * x[g]) #Expected abundance
+    logit(p.po[g]) <- alpha0 + w[g] * alpha1 #Observation error of PO
+    y.po[g] ~ dpois(p.po[g] * lambda[g])     #Observation process of PO
+    }
+
+    for(b in 1:B){
+    p.ds[b] <- exp(-dst[b]*dst[b]/(2*sigma*sigma)) #Detection probability of DS
+    y.ds[b] ~ dpois(p.ds[b] * lambda[coverage[b]]) #Observation process of DS
+    }
+    
+    Ntot <- sum(lambda[]) #Number of individuals in region B
+
+    }
+    
