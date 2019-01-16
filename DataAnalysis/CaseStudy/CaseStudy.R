@@ -1,138 +1,82 @@
+#---------------------------------------------#
+#----Integrated Species Distribution Model----#
+#----Case study of black-backed jackal in-----#
+#----the Masai Mara National Reserve.---------#
+#----Created by Matthew Farr------------------#
+#---------------------------------------------#
+
 #-----------------------#
-#-Set working directory-#
+#-Set Working Directory-#
 #-----------------------#
 
-setwd("C:/Users/farrm/Documents/GitHub/ISDM/DataAnalysis/CaseStudy")
+setwd("./DataAnalysis/CaseStudy")
 
-#------------------------------#
-#-Libraries used in simulation-#
-#------------------------------#
+#-----------#
+#-Libraries-#
+#-----------#
 
-library(raster)
-library(rgdal)
 library(jagsUI)
 
-#----------------#
-#-Spatial Extent-#
-#----------------#
-SEstack <- raster("C:/Users/farrm/Documents/GitHub/ISDM/DataFormatting/ArcGIS/BaseData/DSExtent.tif")
-SEdata <- raster::as.matrix(SEstack)
-add <- 1
-coverage2 <- NULL
-for(i in 1:length(SEdata[,1])){
-  for(j in 1:length(SEdata[1,])){
-    if(!is.na(SEdata[i,j])){
-      SEdata[i,j] <- add
-      add <- add + 1
-    }
-  }
-  coverage2 <- c(coverage2, as.numeric(na.omit(rep(rep(SEdata[i,], each = 20, 20)))))
-}
+#-----------#
+#-Load Data-#
+#-----------#
 
-#----------------------#
-#-Import Obs Bias data-#
-#----------------------#
-
-#Temporal extent/order
-#te <- c(28,31,34,1,4,10,8,14,17,20,23,26,29,32,35,2,5,11,9,15,18)
-te <- c(16,18,20,1,3,7,5,9,11,13,14,15,17,19,21,2,4,8,6,10,12)
-
-dir <- "C:/Users/farrm/Documents/GitHub/ISDM/DataFormatting/FormattedData/Bias_Data"
-Biaslist <- list.files(path = dir, pattern = "tif$", full.names = TRUE)
-Biasstack <- stack(Biaslist[te])
-Biasdata <- raster::as.matrix(Biasstack)
-Bias <- Biasdata[which(!is.na(Biasdata[,1])),]
-Bias <- scale(Bias)
-
-#----------------#
-#-Import PO data-#
-#----------------#
-
-dir <- "C:/Users/farrm/Documents/GitHub/ISDM/DataFormatting/FormattedData/PO_Data"
-POlist <- list.files(path = dir, pattern = "tif$", full.names = TRUE)
-POstack <- stack(POlist[te])
-POdata <- raster::as.matrix(POstack)
-PO <- POdata[which(!is.na(Biasdata[,1])),]
-PO[is.na(PO)] <- 0
-
-#----------------#
-#-Import DS data-#
-#----------------#
-
-#Subregion of spatial extent that is covered by distance sampling (all DS pixels within PO pixel)
-regionB <- stack("C:/Users/farrm/Documents/GitHub/ISDM/DataFormatting/ArcGIS/BaseData/DSpixel.tif")
-regionB <- raster::as.matrix(regionB)
-#Number of DS pixels within PO pixels; 1 PO pixel is 20 x 20 50m^2 DS pixels; 235 PO pixels containing DS (20x20x235)
-B <- length(which(!is.na(regionB)))
-
-#Subregion of spatial extent that is covered by distance sampling (only DS pixels)
-transect <- stack("C:/Users/farrm/Documents/GitHub/ISDM/DataFormatting/ArcGIS/BaseData/Transect.tif")
-transect <- raster::as.matrix(transect)
-transect[transect == 128] <- NA
-transect <- transect[which(!is.na(regionB))]
-coverage1 <- which(!is.na(transect))
-
-dir <- "C:/Users/farrm/Documents/GitHub/ISDM/DataFormatting/FormattedData/DS_Data/"
-DSlist <- list.files(path = dir, pattern = "tif$", full.names = TRUE)
-DSstack <- stack(DSlist[te])
-DS<- raster::as.matrix(DSstack)
-DS <- DS[which(!is.na(regionB)),]
-DS <- DS[coverage1,]
-DS[is.na(DS)] <- 0
-
-
-
-
-#----------------------------#
-#-Variance covariance matrix-#
-#----------------------------#
-
-UTM <- as.matrix(xyFromCell(SEstack, which(SEdata[,1]==1)))
-COV <- as.matrix(dist(UTM))
-
-#---------#
-#-Indices-#
-#---------#
-
-G <- length(PO[,1])
-TT <- length(PO[1,])
-
-#--------------#
-#-Compile JAGS-#
-#--------------#
-
-data <- list(y.po = PO, w = Bias, G = G, TT = TT)
-
-params <- c("alpha0", "alpha1", "tau", "beta1", "beta0")
-
-inits <- function(){list(beta1 = runif(G, -1, 1), alpha1 = runif(1, -0.05, 0.05), 
-                         beta0 = runif(1, -1, 1), alpha0 = runif(1, -9, -8))}
+load(file = "ISDM.Rdata")
 
 #-------------#
-#-MCMC values-#
+#-Attach Data-#
 #-------------#
 
-nb <- 20000
-ni <- 29000
+attach(ISDMdata)
+
+#--------------#
+#-Compile Data-#
+#--------------#
+
+data <- list(y.po = y.po, y.ds = y.ds, dst = dst, w = Bias,
+             D = D, Dend = Dend, Bend = Bend, G = G, TT = TT,
+             c1 = c1, c2 = c2, c3 = c3, scale = scale,
+             Gstart = Gstart, Gend = Gend, cover = cover, border = border[1:555,1], region = region,
+             water = water[1:555,1], Lion = Lion[1:555,1:21], NDVI = NDVI[1:555,1:21])
+
+#--------------------#
+#-Parameters to Save-#
+#--------------------#
+
+params <- c("gamma0", "gamma1", "alpha0", "alpha1",
+            "beta6", "beta5", "beta4", "beta3", "beta2", "beta1", "beta0",
+            "tau", "tauz", "Density")
+
+#---------------#
+#-Inital Values-#
+#---------------#
+
+inits <- function(){list(beta0 = runif(1, -9, -8.5),
+                         beta1 = runif(1, 0.8, 1), beta2 = runif(1, 1.5, 2),
+                         beta3 = runif(1, -1.4, -1), beta4 = runif(1, 0.1, 0.4),
+                         beta5 = runif(1, -0.1, 0), beta6 = runif(1, -0.1, 0),
+                         gamma1 = runif(1, -1, 0),gamma0 = runif(1, 5.3, 5.4), 
+                         alpha1 = runif(1, 12, 14), alpha0 = runif(1, -1, -0.5),
+                         sig = runif(1, 1, 3), sigz = runif(1, 1, 3))}
+
+#---------------#
+#-MCMC settings-#
+#---------------#
+
+nb <- 5000
+ni <- 14000
 nt <- 3
 nc <- 3
-na <- 100
+na <- 1000
 
-out2 <- jagsUI(data, inits, params, "PO2.txt", n.thin=nt, 
-          n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na,  parallel = TRUE)
+#-----------#
+#-Run Model-#
+#-----------#
 
-###
-tst <- SEstack
-values(tst)[which(values(tst)==0)] <- exp(out2$mean$beta1)
-plot(tst)
+#WARNING: Model takes 66 hours to converge on parrallel computing. 
+#This model was run on CentOS7 Linux using a high performance computer.
 
-which.max(out$mean$beta0)
+ISDM <- jagsUI(data, inits, params, "ISDM.txt", n.thin=nt, 
+               n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na,  parallel = TRUE)
 
-expit <- function(eta) 
-{
-  1/(1+exp(-eta))
-}
-
-tst2 <- SEstack
-values(tst2)[which(values(tst2)==0)] <- expit(out$mean$alpha0 + out$mean$alpha1*Bias[,1])
-plot(tst2)
+save(ISDM, file = "CaseStudy.Rdata")
