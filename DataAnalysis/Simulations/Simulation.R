@@ -79,6 +79,7 @@ load(file = "dist.Rdata")
 #-Draw environmental covariate values-#
 #-------------------------------------#
 
+#Code borrowed from Kéry & Royle 2016 pg. 534
 #Variance-covariance matrix based on Euclidean distance
 #V <- exp(-e2dist(gr, gr))
 #Covariate values from a correlated multivariate normal (pg.534 AHM)
@@ -247,6 +248,7 @@ yds <- rapply(yds, f=function(x) ifelse(is.na(x),0,x), how="replace" )
 #---------------------------------------#
 #-Draw covariate value for PO detection-#
 #---------------------------------------#
+#Code borrowed from Dorazio 2014
 #Environmental covariate on PO detection (Multivariate normal)
 #Mean of x-dim distribution
 mu.x <- runif(1, 25, 75)
@@ -551,3 +553,11 @@ output <- list(Out, Time)
 heads <- c("Out", "Time")
 output <- setNames(output, nm = heads)
 save(output, file = paste("output", ID, ".R", sep=""))
+
+#------------#
+#-References-#
+#------------#
+
+#Dorazio, R.M. (2014) Accounting for imperfect detection and survey bias in statistical analysis of presence-only data. Global Ecology and Biogeography, 23, 1472–1484.
+
+#Kéry, M. & Royle, J.A. (2016) Applied hierarchical modeling in ecology: Analysis of distribution, abundance and species richness in R and BUGS (volume 1 – prelude and static models), Elsevier, Amsterdam.
