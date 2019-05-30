@@ -1,37 +1,57 @@
 
-    model{ 
-    
-    #--------#
-    #-Priors-#
-    #--------#
+model{ 
 
-    #Scale parameter DS
-    sigma ~ dunif(0, 10)
-    #Intercept intensity
-    beta0 ~ dnorm(0, 0.1)
-    #Effect intensity
-    beta1 ~ dnorm(0, 0.1)
-    #Intercept PO detection
-    alpha0 ~ dnorm(0, 0.368)
-    #Effect PO detection
-    alpha1 ~ dnorm(0, 0.368)
-    
-    #------------#
-    #-Likelihood-#
-    #------------#
+#--------#
+#-PRIORS-#
+#--------#
 
-    for(g in 1:G){
-    lambda[g] <- exp(beta0 + beta1 * x[g]) #Expected abundance
-    logit(p.po[g]) <- alpha0 + w[g] * alpha1 #Observation error of PO
-    y.po[g] ~ dpois(p.po[g] * lambda[g])     #Observation process of PO
-    }
+#Biological process priors
+lambda0 ~ dnorm(0, 0.1) #Intercept
+beta1 ~ dnorm(0, 0.1) #Effect of environment
 
-    for(b in 1:B){
-    p.ds[b] <- exp(-dst[b]*dst[b]/(2*sigma*sigma)) #Detection probability of DS
-    y.ds[b] ~ dpois(p.ds[b] * lambda[coverage[b]]) #Observation process of DS
-    }
-    
-    Ntot <- sum(lambda[]) #Number of individuals in region B
+#Presence only observation process priors
+p0 ~ dnorm(0, 0.368) #Intercept
+alpha1 ~ dnorm(0, 0.368) #Effect of sampling intensity
 
-    }
-    
+#Distance sampling observation process priors
+sigma ~ dunif(0, 10) #Scale parameter
+
+#------------#
+#-LIKELIHOOD-#
+#------------#
+
+for(g in 1:G){
+
+#Observation process of opportunistic presence-only data (thinned point process)
+y[g] ~ dpois(p[g] * N[g])
+
+#Linear predictor for observation process of opportunistic presence-only data
+logit(p[g]) <- p0 + alpha1 * z[g]
+
+#Biological process model
+N[g] ~ dpois(lambda[g])
+
+#Linear predictor for biological process
+lambda[g] <- exp(lambda0 + beta1 * w[g])
+
+}#end g
+
+for(b in 1:B){
+
+#Half-normal distance function
+pi[b] <- exp(-d[b]*d[b]/(2*sigma*sigma)) #Detection probability of DS
+
+#Observation process of distance sampling data (thinned point process)
+x[b] ~ dpois(pi[b] * N[coverage[b]])
+
+}
+
+#----------------#
+#-DERIVED VALUES-#
+#----------------#    
+
+#Abundance
+Ntot <- sum(N[])
+
+}
+
