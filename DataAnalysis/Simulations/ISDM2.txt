@@ -22,13 +22,10 @@ sigma ~ dunif(0, 10) #Scale parameter
 for(g in 1:G){
 
 #Observation process of opportunistic presence-only data (thinned point process)
-y[g] ~ dpois(p[g] * N[g])
+y[g] ~ dpois(p[g] * lambda[g])
 
 #Linear predictor for observation process of opportunistic presence-only data
 logit(p[g]) <- p0 + alpha1 * z[g]
-
-#Biological process model
-N[g] ~ dpois(lambda[g])
 
 #Linear predictor for biological process
 lambda[g] <- exp(lambda0 + beta1 * w[g])
@@ -41,7 +38,7 @@ for(b in 1:B){
 pi[b] <- exp(-d[b]*d[b]/(2*sigma*sigma)) #Detection probability of DS
 
 #Observation process of distance sampling data (thinned point process)
-x[b] ~ dpois(pi[b] * N[coverage[b]])
+x[b] ~ dpois(pi[b] * lambda[coverage[b]])
 
 }#end b
 
@@ -50,6 +47,6 @@ x[b] ~ dpois(pi[b] * N[coverage[b]])
 #----------------#    
 
 #Abundance
-Ntot <- sum(N[])
+Ntot <- sum(lambda[])
 
 }

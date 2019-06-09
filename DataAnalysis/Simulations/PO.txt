@@ -1,17 +1,42 @@
+model{
 
-model{ 
-  
-    # Priors
-    beta1 ~ dnorm(0, 0.1)
-    alpha1 ~ dnorm(0, 0.368)
-    beta0 ~ dnorm(0, 0.1)
-    alpha0 ~ dnorm(0, 0.368)
-    
-    for(g in 1:G){   # g is the pixel index, there are G total pixels
-    lambda[g] <- exp(beta1 * x[g] + beta0)
-    logit(p.po[g]) <- w[g] * alpha1 + alpha0
-    y.po[g] ~ dpois(lambda[g] * p.po[g])
-    }
-    Ntot <- sum(lambda[])
-    }
+#--------#
+#-PRIORS-#
+#--------#
 
+#Biological process priors
+lambda0 ~ dnorm(0, 0.1) #Intercept
+beta1 ~ dnorm(0, 0.1) #Effect of environment
+
+#Presence only observation process priors
+p0 ~ dnorm(0, 0.368) #Intercept
+alpha1 ~ dnorm(0, 0.368) #Effect of sampling intensity
+
+#------------#
+#-LIKELIHOOD-#
+#------------#
+ 
+for(g in 1:G){
+
+#Observation process of opportunistic presence-only data (thinned point process)
+y[g] ~ dpois(p[g] * N[g])
+
+#Linear predictor for observation process of opportunistic presence-only data
+logit(p[g]) <- p0 + alpha1 * z[g]
+
+#Biological process model
+N[g] ~ dpois(lambda[g])
+
+#Linear predictor for biological process
+lambda[g] <- exp(lambda0 + beta1 * w[g])
+
+}#end g
+
+#----------------#
+#-DERIVED VALUES-#
+#----------------#    
+
+#Abundance
+Ntot <- sum(N[])
+
+}
