@@ -1,0 +1,122 @@
+model{
+
+#------------#
+#-LIKELIHOOD-#
+#------------#
+
+for(t in TT){
+for(d in 1:Dend[cover[t]]){
+
+#Observation process of distance sampling data (thinned point process)
+x[d,t] ~ dpois(pi[d] * lambda[c3[d,cover[t]],t])
+
+}#end d
+
+for(b in 1:Bend[cover[t]]){
+
+#Linear predictor for biological process
+log(lambda[c2[b, cover[t]],t]) <- log_lambda0 + 
+                                 beta1 * border[c1[b, cover[t]]] + 
+                                 beta2 * region[c1[b, cover[t]]] + 
+                                 beta3 * border[c1[b, cover[t]]] * region[c1[b, cover[t]]] + 
+                                 beta4 * water[c1[b, cover[t]]] +
+                                 beta5 * Lion[c1[b, cover[t]],t] +
+                                 beta6 * NDVI[c1[b, cover[t]],t] +
+                                 psi[c1[b, cover[t]]]
+
+}#end b
+
+for(g in 1:G){
+
+#Observation process of opportunistic presence-only data (thinned point process)
+y[g,t] ~ dpois(p[g,t] * intensity[g,t])
+
+#Linear predictor for observation process of opportunistic presence-only data
+logit(p[g,t]) <- logit(p0) + alpha1 * w[g,t] + z[g]
+
+#Change-of-support between 50x50m and 1x1km
+log(intensity[g,t]) <- ifelse(scale[g,cover[t]] < 1, 
+                              log_lambda0 + 
+                              beta1 * border[g] + 
+                              beta2 * region[g] + 
+                              beta3 * border[g] * region[g] + 
+                              beta4 * water[g] + 
+                              beta5 * Lion[g,t] + 
+                              beta6 * NDVI[g,t] +
+                              psi[g] + log(400), 
+                              log(sum(lambda[Gstart[g,cover[t]]:Gend[g,cover[t]], t])))
+
+}#end g
+}#end t
+
+for(d in 1:D){
+
+#Linear predictor for observation process of distance sampling
+sigma[d] <- exp(gamma0 + gamma1 * region[c1[c3[d,7],7]])
+
+#Half-normal detection function
+pi[d] <- exp(-dst[d]*dst[d]/(2*sigma[d]*sigma[d]))
+
+}#end d
+
+for(g in 1:G){
+
+#Replicate 10 has only presence-only data
+#Observation process of opportunistic presence-only data (thinned point process)
+y[g,10] ~ dpois(p[g,10] * intensity[g,10])
+
+#Linear predictor for observation process of opportunistic presence-only data
+logit(p[g,10]) <- logit(p0) + alpha1 * w[g,10] + z[g]
+
+#Change-of-support between 50x50m and 1x1km
+log(intensity[g,10]) <- log_lambda0 + 
+                       beta1*border[g] + 
+                       beta2*region[g] + 
+                       beta3*border[g]*region[g] + 
+                       beta4*water[g] +
+                       beta5*Lion[g,10] +
+                       beta6*NDVI[g,10] +
+                       psi[g] + log(400)
+
+#----------------#     
+#-DERIVED VALUES-#
+#----------------#
+
+#Estimated density
+Density[g] <- mean(intensity[g,])
+
+#--------#
+#-PRIORS-#
+#--------#
+
+#Random effects of pixel
+psi[g] ~ dnorm(0, tau) #Biological process
+z[g] ~ dnorm(0, tauz) #Presence only observation process
+
+}#end g
+
+#Biological process priors
+log_lambda0 ~ dnorm(0, 0.1) #Log intercept
+#log(lambda0) <- log_lambda0 #Intercept
+beta1 ~ dnorm(0, 0.1)       #Effect of border
+beta2 ~ dnorm(0, 0.1)       #Effect of distrubance region
+beta3 ~ dnorm(0, 0.1)       #Interaction between border and region
+beta4 ~ dnorm(0, 0.1)       #Effect of distance to water
+beta5 ~ dnorm(0, 0.1)       #Effect of lion density
+beta6 ~ dnorm(0, 0.1)       #Effect of NDVI
+
+tau <- 1/(sig * sig) #Precision of random pixel effect
+sig ~ dt(0, pow(2.5,-2), 1) T(0,) #Variance of random pixel effect (half cauchy prior)
+
+#Presence only observation process priors
+p0 ~ dunif(0, 1) #Intercept
+alpha1 ~ dnorm(0, 0.1) #Effect of sampling intensity
+
+tauz <- 1/(sigz * sigz) #Precision of random pixel effect
+sigz  ~ dt(0, pow(2.5,-2), 1) T(0,) #Variance of random pixel effect (half cauchy prior)
+
+#Distance sampling observation process priors
+gamma0 ~ dnorm(0, 0.1) #Intercept
+gamma1 ~ dnorm(0, 0.1) #Effect of distrubance region (grass height)
+
+}
