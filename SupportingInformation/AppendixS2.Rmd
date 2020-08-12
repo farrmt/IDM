@@ -1,0 +1,157 @@
+---
+title: "Appendix S2"
+output: 
+  pdf_document:
+    fig_caption: false
+header-includes:
+    - \usepackage{caption}
+---
+\captionsetup[table]{labelformat=empty}
+# Matthew T. Farr, David S. Green, Kay E. Holekamp, and Elise F. Zipkin
+
+# Integrating distance sampling and presence-only data to estimate species abundance
+
+# Ecology
+
+# Simulation study
+
+This appendix describes the parameter values used in the simulation study. See our [GitHub repository](https://github.com/farrmt/ISDM/tree/master/DataAnalysis/Simulations) for the full code to run the simulation study.
+
+### Section S1. Parameter and covariate values:
+
+The intercept parameter for the biological process was randomly drawn as follows: $\lambda_0 \sim uniform(0.05, 1)$. This equated to a range of 500 to 10,000 individuals for region $A$ (assuming no covariate effects). A single effect parameter on the biological process was also assumed to come from a uniform distribution: $\beta_1 \sim uniform(-1.25, 1.25)$. The covariate values at each pixel across region $A$ for the biological process came from a correlated multivariate normal distribution using Euclidean distances between pixels to define the variance-covariance matrix (Kéry & Royle 2016, pg. 534). We standardized the covariate values to have a mean of 0 and standard deviation of 1. Expected pixel density ranged between 0 and 85 based on the magnitude and values of the effect parameter and covariate. The intercept parameter for the observation bias of opportunistic sampling (presence-only data) was predetermined as either: $p_0 = 0.5$ or $p_0 = 0.1$, based on whether we assumed a low or high quantity of presence-only data. The covariate effect for opportunistic sampling was drawn from a random uniform distribution: $\alpha_1 \sim uniform(0, 2)$. The covariate values for the observation process of opportunistic sampling were also assumed to come from a multivariate normal distribution (Dorazio 2014). We created separate covariates for high and low quantities of presence-only data by adjusting the variance of the multivariate normal distribution, which translated to larger or smaller (high vs low) sampling intensity. The scale parameter for the distance sampling observational process was drawn from a uniform distribution: $\sigma \sim uniform(0.75, 1.25)$, which led to a detection probability ranging from approximately from 19 to 31%.
+
+```{r, include = FALSE, message = FALSE}
+#Libaries
+library(abind)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+#List of all filenames
+filenames <- list.files(path = "Z:/ISDM/Revision/combinedrevisions", pattern = "output", full.names = TRUE)
+
+#Load first file
+load(filenames[1])
+
+#Initialize vector for all output
+Out <- output$Out
+Out2 <- output$Out2
+
+#Time vector
+Time <- output$Time
+
+#Harvest parameters from files and remove model runs with Rhat > 1.1
+for(i in 2:length(filenames)){
+  load(filenames[i])
+  for(j in 1:length(output$Out[,1,1])){
+    if(max(output$Out[j,c(18,20,22,24,28:31),2:6], na.rm = TRUE) < 1.1){
+    #if(max(output$Out[j,c(18:25,27:31),2:6], na.rm = TRUE) < 1.1){
+      Out <- abind(Out, output$Out[j,,], along = 1)
+      Out2 <- rbind(Out2, output$Out2[j,])
+    }
+  }
+  Time <- c(Time, output$Time)
+}
+
+#Remove first sample if Rhat > 1.1
+if(max(Out[1,c(18,20,22,24,28:31),2:6], na.rm = TRUE) < 1.1){
+  Out <- Out[-1,,]
+  Out2 <- Out2[-1,]
+  }
+
+#Sample 1000 iterations
+set.seed(123)
+iter <- sort(sample(dim(Out)[1], 1000, replace = FALSE))
+Out <- Out[iter,,]
+
+name <- c("0", "5", "10", "15", "20")
+name <- as.character(name)
+name <- factor(name, levels=unique(name))
+
+truth <- Out[,rep(1,10),]
+truth[,1:5,5] <- 0.5
+truth[,6:10,5] <- 0.1
+
+y75 <- apply(Out[,c(2,3,5,7,9,12:16),] - truth, MARGIN = c(2,3), FUN = quantile, probs = 0.75, na.rm = TRUE)
+y50 <- apply(Out[,c(2,3,5,7,9,12:16),] - truth, MARGIN = c(2,3), FUN = quantile, probs = 0.5, na.rm = TRUE)
+y25 <- apply(Out[,c(2,3,5,7,9,12:16),] - truth, MARGIN = c(2,3), FUN = quantile, probs = 0.25, na.rm = TRUE)
+
+ymax <-  ((y75 - y25) * 1.5) + y75
+ymin <- y25 - ((y75 - y25) * 1.5)
+
+df <- abind(ymin,y25,y50,y75,ymax, along = 3)
+```
+
+### Section S2. Simulation results:
+
+Below are the bias (estimated - truth) results for each parameter with the interquartile range and $\pm$ 1.5 the interquartile range. Each row represents a different scenario for the various data quantities. Scenarios 1-5 are for high quantities of presence-only data for each of 0, 5, 10, 15, and 20% distance sampling coverage. Scenarios 6-10 are for low quantities of presence-only data for each level of distance sampling coverage.
+
+\pagebreak
+
+Table S1. Parameter Abundance (N)
+```{r, echo = FALSE, results = 'asis'}
+tmp <- df[,1,]
+colnames(tmp) <- c("min", "25", "50", "75", "max")
+rownames(tmp) <- c("High PO, 0% DS", "High PO, 5% DS", "High PO, 10% DS", "High PO, 15% DS", "High PO, 20% DS",
+                   "Low PO, 0% DS", "Low PO, 5% DS", "Low PO, 10% DS", "Low PO, 15% DS", "Low PO, 20% DS")
+kable(tmp, digits = 2, longtable = TRUE, booktabs = TRUE, linesep = "") %>%
+  kable_styling(position = "left")
+```
+
+Table S2. Parameter $\lambda_0$
+```{r, echo = FALSE, results = 'asis'}
+tmp <- df[,2,]
+colnames(tmp) <- c("min", "25", "50", "75", "max")
+rownames(tmp) <- c("High PO, 0% DS", "High PO, 5% DS", "High PO, 10% DS", "High PO, 15% DS", "High PO, 20% DS",
+                   "Low PO, 0% DS", "Low PO, 5% DS", "Low PO, 10% DS", "Low PO, 15% DS", "Low PO, 20% DS")
+kable(tmp, digits = 2, longtable = TRUE, booktabs = TRUE, linesep = "") %>%
+  kable_styling(position = "left") 
+```
+
+Table S3. Parameter $\beta_1$
+```{r, echo = FALSE, results = 'asis'}
+tmp <- df[,3,]
+colnames(tmp) <- c("min", "25", "50", "75", "max")
+rownames(tmp) <- c("High PO, 0% DS", "High PO, 5% DS", "High PO, 10% DS", "High PO, 15% DS", "High PO, 20% DS",
+                   "Low PO, 0% DS", "Low PO, 5% DS", "Low PO, 10% DS", "Low PO, 15% DS", "Low PO, 20% DS")
+kable(tmp, digits = 2, longtable = TRUE, booktabs = TRUE, linesep = "") %>%
+  kable_styling(position = "left")
+```
+
+\pagebreak
+
+Table S4. Parameter $\sigma$
+```{r, echo = FALSE, results = 'asis'}
+tmp <- df[,4,]
+colnames(tmp) <- c("min", "25", "50", "75", "max")
+rownames(tmp) <- c("High PO, 0% DS", "High PO, 5% DS", "High PO, 10% DS", "High PO, 15% DS", "High PO, 20% DS",
+                   "Low PO, 0% DS", "Low PO, 5% DS", "Low PO, 10% DS", "Low PO, 15% DS", "Low PO, 20% DS")
+kable(tmp, digits = 2, longtable = TRUE, booktabs = TRUE, linesep = "") %>%
+  kable_styling(position = "left")
+```
+
+Table S5. Parameter $p_0$
+```{r, echo = FALSE, results = 'asis'}
+tmp <- df[,5,]
+colnames(tmp) <- c("min", "25", "50", "75", "max")
+rownames(tmp) <- c("High PO, 0% DS", "High PO, 5% DS", "High PO, 10% DS", "High PO, 15% DS", "High PO, 20% DS",
+                   "Low PO, 0% DS", "Low PO, 5% DS", "Low PO, 10% DS", "Low PO, 15% DS", "Low PO, 20% DS")
+kable(tmp, digits = 2, longtable = TRUE, booktabs = TRUE, linesep = "") %>%
+  kable_styling(position = "left")
+```
+
+Table S6. Parameter $\alpha_1$
+```{r, echo = FALSE, results = 'asis'}
+tmp <- df[,6,]
+colnames(tmp) <- c("min", "25", "50", "75", "max")
+rownames(tmp) <- c("High PO, 0% DS", "High PO, 5% DS", "High PO, 10% DS", "High PO, 15% DS", "High PO, 20% DS",
+                   "Low PO, 0% DS", "Low PO, 5% DS", "Low PO, 10% DS", "Low PO, 15% DS", "Low PO, 20% DS")
+kable(tmp, digits = 2, longtable = TRUE, booktabs = TRUE, linesep = "") %>%
+  kable_styling(position = "left") 
+```
+
+##### Literature Cited
+Dorazio, R.M. (2014) Accounting for imperfect detection and survey bias in statistical analysis of presence-only data. Global Ecology and Biogeography, 23, 1472–1484.
+
+Kéry, M. & Royle, J.A. (2016) Applied hierarchical modeling in ecology: Analysis of distribution, abundance and species richness in R and BUGS (volume 1 – prelude and static models), Elsevier, Amsterdam.
