@@ -9,27 +9,23 @@ lambda0 ~ dnorm(0, 0.1) #Intercept
 beta1 ~ dnorm(0, 0.1) #Effect of environment
 
 #Presence only observation process priors
-p0.l <- log(p0/(1-p0)) #Intercept logit scale
-p0 <- dunif(0, 1) #Intercept probability scale
+p0 ~ dunif(0, 1) #Intercept
 alpha1 ~ dnorm(0, 0.1) #Effect of sampling intensity
 
 #------------#
 #-LIKELIHOOD-#
 #------------#
- 
+
 for(g in 1:G){
 
 #Observation process of opportunistic presence-only data (thinned point process)
-y[g] ~ dpois(p[g] * N[g])
+y[g] ~ dpois(p[g] * lambda[g])
 
 #Linear predictor for observation process of opportunistic presence-only data
-logit(p[g]) <- p0.l + alpha1 * z[g]
-
-#Biological process model
-N[g] ~ dpois(lambda[g])
+logit(p[g]) <- logit(p0) + alpha1 * z[g]
 
 #Linear predictor for biological process
-lambda[g] <- exp(lambda0 + beta1 * w[g])
+log(lambda[g]) <- log(lambda0) + beta1 * w[g]
 
 }#end g
 
@@ -38,6 +34,6 @@ lambda[g] <- exp(lambda0 + beta1 * w[g])
 #----------------#    
 
 #Abundance
-Ntot <- sum(N[])
+Ntot <- sum(lambda[])
 
 }

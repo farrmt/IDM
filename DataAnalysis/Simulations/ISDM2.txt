@@ -9,8 +9,7 @@ lambda0 ~ dnorm(0, 0.1) #Intercept
 beta1 ~ dnorm(0, 0.1) #Effect of environment
 
 #Presence only observation process priors
-p0.l <- log(p0/(1-p0)) #Intercept logit scale
-p0 <- dunif(0, 1) #Intercept probability scale
+p0 ~ dunif(0, 1) #Intercept probability scale
 alpha1 ~ dnorm(0, 0.1) #Effect of sampling intensity
 
 #Distance sampling observation process priors
@@ -23,13 +22,16 @@ sigma ~ dunif(0, 10) #Scale parameter
 for(g in 1:G){
 
 #Observation process of opportunistic presence-only data (thinned point process)
-y[g] ~ dpois(p[g] * lambda[g])
+y[g] ~ dbin(p[g], N[g])
 
 #Linear predictor for observation process of opportunistic presence-only data
-logit(p[g]) <- p0.l + alpha1 * z[g]
+logit(p[g]) <- logit(p0) + alpha1 * z[g]
+
+#Biological process model
+N[g] ~ dpois(lambda[g])
 
 #Linear predictor for biological process
-lambda[g] <- exp(lambda0 + beta1 * w[g])
+log(lambda[g]) <- log(lambda0) + beta1 * w[g]
 
 }#end g
 
@@ -39,7 +41,7 @@ for(b in 1:B){
 pi[b] <- exp(-d[b]*d[b]/(2*sigma*sigma)) #Detection probability of DS
 
 #Observation process of distance sampling data (thinned point process)
-x[b] ~ dpois(pi[b] * lambda[coverage[b]])
+x[b] ~ dbin(pi[b], N[coverage[b]])
 
 }#end b
 
@@ -48,6 +50,6 @@ x[b] ~ dpois(pi[b] * lambda[coverage[b]])
 #----------------#    
 
 #Abundance
-Ntot <- sum(lambda[])
+Ntot <- sum(N[])
 
 }
