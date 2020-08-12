@@ -7,7 +7,7 @@
 #-Set working directory-#
 #-----------------------#
 
-setwd("./PostAnalysis")
+setwd("~/ISDM/PostAnalysis")
 
 #-----------#
 #-Libraries-#
@@ -15,19 +15,20 @@ setwd("./PostAnalysis")
 
 library(cowplot)
 library(raster)
+library(ggplot2)
 library(ggthemes)
 library(gridExtra)
 library(extrafont)
-loadfonts()
+loadfonts(quiet = TRUE)
 
 #------------#
 #-Load Files-#
 #------------#
 
 #Model ouput from integrated model
-load("../DataAnalysis/CaseStudy/CaseStudy.Rdata") #FIX FILE 
+load("~/ISDM/DataAnalysis/CaseStudy/CaseStudy.Rdata") #FIX FILE 
 #Formatted data used in analysis
-load("../DataFormatting/ISDM.Rdata")
+load("~/ISDM/DataFormatting/ISDM.Rdata")
 
 #----------#
 #-Figure2A-#
@@ -35,7 +36,7 @@ load("../DataFormatting/ISDM.Rdata")
 
 #Load Figure 2A. Figure subcomponent was created in ArcGis.
 Fig2A <- ggdraw() + 
-  draw_image("C:/Users/farrm/Documents/GitHub/ISDM/PostAnalysis/Figure2A.tif", scale = 1)
+  draw_image("~/ISDM/PostAnalysis/Figure2A.tif", scale = 1)
 
 #-----------#
 #-Figure 2B-#
@@ -52,7 +53,7 @@ predDen <- NULL
 
 for(i in 1:555){
   values(estD)[which(values(estD)==i)] <- Density[i]
-  values(predD)[which(values(predD)==i)] <- predDen[i] <- exp(ISDM$mean$beta0 + 
+  values(predD)[which(values(predD)==i)] <- predDen[i] <- exp(ISDM$mean$log_lambda0 +
                                                   ISDM$mean$beta1*ISDMdata$border[i] + 
                                                   ISDM$mean$beta2 * ISDMdata$region[i] +
                                                   ISDM$mean$beta3 * ISDMdata$region[i] * ISDMdata$border[i] +
@@ -64,17 +65,17 @@ for(i in 1:555){
 
 #Estimated density
 plot(estD)
-writeRaster(estD, "EstDensity.tif", overwrite=TRUE)
+writeRaster(estD, "EstDensity_Revised2.tif", overwrite=TRUE) #FIX file path
 
 #Predicted density
 plot(predD)
-writeRaster(predD, "PredDensity.tif", overwrite=TRUE)
+writeRaster(predD, "PredDensity_Revised2.tif", overwrite=TRUE) #FIX file path
 
 #This file is now edited in ArcMap
 
 #Load edited map
 Fig2B <- ggdraw() + 
-  draw_image("C:/Users/farrm/Documents/GitHub/ISDM/PostAnalysis/Figure2B.tif", scale = 1)
+  draw_image("~/ISDM/PostAnalysis/Figure2B_Revised.tif", scale = 1)
 
 #-----------#
 #-Figure 2C-#
@@ -102,7 +103,7 @@ Fig2C <- ggplotGrob(ggplot(values) +
                 width = 0, size = 1.25) +
   geom_errorbar(aes(x = covariate, ymin = l25.alpha, ymax = u75.alpha),
                 width = 0, size = 3) +
-    coord_cartesian(ylim = c(-3.5, 2.5)) +
+    coord_cartesian(ylim = c(-2.5, 2.5)) +
   geom_hline(yintercept = 0, alpha = 0.75) +
   theme_few() +
   theme(plot.margin = unit(c(0, 0, 0, 0), "in"),
@@ -129,8 +130,8 @@ undisturbed <- matrix(NA, nrow = 1001, ncol = 3000)
 #Generate predicted values
 for(i in 1:1001){
   for(k in 1:3000){
-    disturbed[i,k] <- exp(ISDM$sims.list$beta0[k] + ISDM$sims.list$beta2[k] + ISDM$sims.list$beta1[k] * dist[i] + ISDM$sims.list$beta3[k] * dist[i]) * 400
-    undisturbed[i,k] <- exp(ISDM$sims.list$beta0[k] + ISDM$sims.list$beta1[k] * dist[i]) * 400
+    disturbed[i,k] <- exp(ISDM$sims.list$log_lambda0[k] + ISDM$sims.list$beta2[k] + ISDM$sims.list$beta1[k] * dist[i] + ISDM$sims.list$beta3[k] * dist[i]) * 400
+    undisturbed[i,k] <- exp(ISDM$sims.list$log_lambda0[k] + ISDM$sims.list$beta1[k] * dist[i]) * 400
   }
 }
 
@@ -181,6 +182,6 @@ Figure2D <- arrangeGrob(Fig2D, top = grid::textGrob("D", x = unit(0, "in"),
 lay = rbind(rep(1,26), rep(1,26), rep(2,26), rep(2,26), rep(2,26), rep(2,26), c(NA, rep(3,14), rep(4,10), NA), c(NA, rep(3,14), rep(4,10), NA), c(NA, rep(3,14), rep(4,10), NA))
 
 #Save Figure 2
-tiff(file = "C:/Users/farrm/Documents/GitHub/ISDM/PostAnalysis/Figure2.tiff", res = 600, width = 6.5, height = 9, units = "in")
+tiff(file = "~/ISDM/PostAnalysis/Figure2_revised2.tiff", res = 600, width = 6.5, height = 9, units = "in")
 grid.arrange(Figure2A, Figure2B, Figure2C, Figure2D, layout_matrix = lay)
 dev.off()
