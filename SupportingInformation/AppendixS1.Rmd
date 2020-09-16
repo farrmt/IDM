@@ -5,62 +5,63 @@ output:
     fig_caption: false
 header-includes:
     - \usepackage{caption}
+    - \usepackage{hyperref}
+    - \usepackage{svg}
 ---
 \captionsetup[table]{labelformat=empty}
+```{r, include=FALSE}
+options(tinytex.engine_args = '-shell-escape')
+```
 # Matthew T. Farr, David S. Green, Kay E. Holekamp, and Elise F. Zipkin
 
 # Integrating distance sampling and presence-only data to estimate species abundance
 
 # Ecology
 
+\href{https://doi.org/10.5281/zenodo.3981242}{\includesvg{DOI}}
+
 # Model structure and assumptions
 
-This appendix describes details on the model structure (Figure S1) and includes additional simulations to evaluate model assumptions. See our [GitHub repository](https://github.com/farrmt/ISDM/tree/master/DataAnalysis/Simulations) for the full code.
+This appendix describes details on the model structure (Figure S1) and includes additional simulations to evaluate model assumptions.
 
-![](C:/Users/farrmt/Documents/ISDM/PostAnalysis/DAG.png)
+![](../PostAnalysis/DAG.png)
 Figure S1. A directed acyclic graph for the integrated model showing links (arrows) between parameters (circles) and data sources (boxes). Both distance sampling and presence-only data are integrated b the biological process or intensity function $\lambda_g$. The left box indicates the distance sampling observation process with count data $x_g$, observed distances $d_g$, and estimated parameters $\sigma_g$ (scale) and $\pi_g$ (detection probability) at pixel $g$. The presence-only observation process is within the right box with observed count of presences $y_g$ and thinning rate or observation error $p_g$ at pixel $g$. The jagged arrows indicates a potential change-of-support between scale for either distance sampling or presence-only data.
 
 ### Section S1. Poisson thinning process
 
 We assumed that presence-only and distance sampling data were a "thinned version" of true abundance, where each detection (i.e., data point) was observed with probability $p$ (i.e., observation error from sampling bias and/or imperfect detection). We used a binomial-Poisson mixture for each observation process, which reduced to a Poisson thinning process. Letting $Y$ = count data and $N$ = true abundance, we then had: $Y \sim binomial(N,p)$ where $N \sim Poisson(\lambda)$. This hierarchical model reduced to: $Y \sim Poisson(p\lambda)$ through the following process (Casella & Berger 2002, pg. 163):
+\renewcommand{\theequation}{S\arabic{equation}}
 \begin{equation}
-  \label{eq:1}
   P(Y=y)=\sum_{n=0}^{\infty}P(Y=y,N=n)=\sum_{n=y}^{\infty}P(Y=y|N=n)P(N=n)
 \end{equation}
 \begin{equation}
-  \label{eq:2}
   =\sum_{n=y}^{\infty}\binom{n}{y}p^y(1-p)^{n-y}\frac{\lambda^ne^{-\lambda}}{n!}
 \end{equation}
 \begin{equation}
-  \label{eq:3}
   =e^{-\lambda}\sum_{n=y}^{\infty}\frac{n!}{y!(n-y)!}p^y(1-p)^{n-y}\frac{\lambda^n}{n!}
 \end{equation}
 \begin{equation}
-  \label{eq:4}
   =\frac{e^{-\lambda}p^y\lambda^y}{y!}\sum_{n=y}^{\infty}\frac{(1-p)^{n-y}\lambda^{n-y}}{(n-y)!}
 \end{equation}
 \begin{equation}
-  \label{eq:5}
   =\frac{e^{-\lambda}p^y\lambda^y}{y!}\sum_{x=0}^{\infty}\frac{((1-p)\lambda)^x}{x!}  
 \end{equation}
 \begin{equation}
-  \label{eq:6}
   =\frac{e^{-\lambda}p^y\lambda^y}{y!}e^{(1-p)\lambda}
 \end{equation}
 \begin{equation}
-  \label{eq:7}
   =\frac{e^{-p\lambda}(p\lambda)^y}{y!}
 \end{equation}
 
 A further explanation of each equation is as follows:
 
-1) Probability of count data given probability of true abundance.
-2) Probability mass function of binomial-Poisson mixture.
-3) Moved $e^{-\lambda}$ out of the series. Expanded binomial coefficient, $\binom{n}{y}$, to $\frac{n!}{y!(n-y)!}$.
-4) Canceled out $\frac{n!}{n!}$. Split $\lambda^n$ to $\lambda^y\lambda^{n-y}$. Moved $\frac{p^y\lambda^y}{y!}$ out of the series.
-5) Switched $n-y$ to $x$. Combined $(1-p)^x\lambda^x$ to get $((1-p)\lambda)^x$.
-6) Euler's number is the sum of infinite series, $e=\sum_{x=0}^{\infty}\frac{1}{x!}$, and $e^z=\sum_{x=0}^{\infty}\frac{z^x}{x!}$. Thus, $\sum_{x=0}^{\infty}\frac{((1-p)\lambda)^x}{x!}=e^{(1-p)\lambda}$.
-7) Combined $e^{-\lambda}$ and $e^{(1-p)\lambda}$ to get $e^{-p\lambda}$. Combined $p^y\lambda^y$ to get $(p\lambda)^y$. This has now become equivalent to the probability mass function of a Poisson ($Y \sim Poisson(p\lambda)$) where expected value was $p\lambda$.
+S1) Probability of count data given probability of true abundance.  
+S2) Probability mass function of binomial-Poisson mixture.  
+S3) Moved $e^{-\lambda}$ out of the series. Expanded binomial coefficient, $\binom{n}{y}$, to $\frac{n!}{y!(n-y)!}$.  
+S4) Canceled out $\frac{n!}{n!}$. Split $\lambda^n$ to $\lambda^y\lambda^{n-y}$. Moved $\frac{p^y\lambda^y}{y!}$ out of the series.  
+S5) Switched $n-y$ to $x$. Combined $(1-p)^x\lambda^x$ to get $((1-p)\lambda)^x$.  
+S6) Euler's number is the sum of infinite series, $e=\sum_{x=0}^{\infty}\frac{1}{x!}$, and $e^z=\sum_{x=0}^{\infty}\frac{z^x}{x!}$. Thus, $\sum_{x=0}^{\infty}\frac{((1-p)\lambda)^x}{x!}=e^{(1-p)\lambda}$.  
+S7) Combined $e^{-\lambda}$ and $e^{(1-p)\lambda}$ to get $e^{-p\lambda}$. Combined $p^y\lambda^y$ to get $(p\lambda)^y$. This has now become equivalent to the probability mass function of a Poisson ($Y \sim Poisson(p\lambda)$) where expected value was $p\lambda$.  
 
 ### Section S2. Assumption of independence
 
@@ -89,7 +90,7 @@ library(kableExtra)
 #-------------#
 
 #List of all filenames
-filenames <- list.files(path = "Z:/ISDM/Revision/combinedrevisions", pattern = "output", full.names = TRUE)
+filenames <- list.files(path = "~/IDM/DataAnalysis/Simulations/SimulationOutput", pattern = "output", full.names = TRUE)
 
 #Load first file
 load(filenames[1])
@@ -250,7 +251,7 @@ We compared the non-ZIF model to the ZIF version assuming the data generating pr
 #-------------------------#
 
 #List of all filenames
-filenames <- list.files(path = "Z:/ISDM/Revision/revision3", pattern = "output", full.names = TRUE)
+filenames <- list.files(path = "~/IDM/DataAnalysis/Simulations/SupportingSimulationOutput", pattern = "output", full.names = TRUE)
 
 #Load first file
 load(filenames[1])

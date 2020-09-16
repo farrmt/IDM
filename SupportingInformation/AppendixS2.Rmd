@@ -5,17 +5,24 @@ output:
     fig_caption: false
 header-includes:
     - \usepackage{caption}
+    - \usepackage{hyperref}
+    - \usepackage{svg}
 ---
 \captionsetup[table]{labelformat=empty}
+```{r, include=FALSE}
+options(tinytex.engine_args = '-shell-escape')
+```
 # Matthew T. Farr, David S. Green, Kay E. Holekamp, and Elise F. Zipkin
 
 # Integrating distance sampling and presence-only data to estimate species abundance
 
 # Ecology
 
+\href{https://doi.org/10.5281/zenodo.3981242}{\includesvg{DOI}}
+
 # Simulation study
 
-This appendix describes the parameter values used in the simulation study. See our [GitHub repository](https://github.com/farrmt/ISDM/tree/master/DataAnalysis/Simulations) for the full code to run the simulation study.
+This appendix describes the parameter values used in the simulation study.
 
 ### Section S1. Parameter and covariate values:
 
@@ -29,7 +36,7 @@ library(knitr)
 library(kableExtra)
 
 #List of all filenames
-filenames <- list.files(path = "Z:/ISDM/Revision/combinedrevisions", pattern = "output", full.names = TRUE)
+filenames <- list.files(path = "~/IDM/DataAnalysis/Simulations/SimulationOutput", pattern = "output", full.names = TRUE)
 
 #Load first file
 load(filenames[1])

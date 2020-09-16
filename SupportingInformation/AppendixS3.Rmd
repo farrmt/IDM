@@ -5,18 +5,24 @@ output:
     fig_caption: false
 header-includes:
     - \usepackage{caption}
+    - \usepackage{hyperref}
+    - \usepackage{svg}
 ---
 \captionsetup[table]{labelformat=empty}
-
+```{r, include=FALSE}
+options(tinytex.engine_args = '-shell-escape')
+```
 # Matthew T. Farr, David S. Green, Kay E. Holekamp, and Elise F. Zipkin
 
 # Integrating distance sampling and presence-only data to estimate species abundance
 
 # Ecology
 
+\href{https://doi.org/10.5281/zenodo.3981242}{\includesvg{DOI}}
+
 # Application
 
-This appendix provides additional details on the black-backed jackal (*Canis mesomelas*) case study. See our [GitHub repository](https://github.com/farrmt/ISDM) for the full code to format the data and run the analysis.
+This appendix provides additional details on the black-backed jackal (*Canis mesomelas*) case study.
 
 ### Section S1. Study area
 
@@ -82,7 +88,7 @@ To account for variation in detection probability during distance sampling, we a
 
 ### Section S5. JAGS model code
 
-Below is the JAGS model code. To see the full code used to run the analysis, see our [GitHub repository](https://github.com/farrmt/ISDM).
+Below is the JAGS model code. To see the full code used to run the analysis, see our [GitHub repository](https://github.com/zipkinlab/Farr_etal_InPress_Ecol).
 
 ```{r, eval=FALSE}
 model{
@@ -238,9 +244,9 @@ library(jagsUI)
 #------------#
 
 #Model ouput from integrated model
-load("~/ISDM/DataAnalysis/CaseStudy/CaseStudy3.Rdata") #FIX FILE 
+load("~/IDM/DataAnalysis/CaseStudy/CaseStudy.Rdata")
 
-df <- data.frame(ISDM$summary[c(11:5,12,3,4,13,1,2),c(1:3,7)])
+df <- data.frame(IDM$summary[c(11:5,12,3,4,13,1,2),c(1:3,7)])
 colnames(df) <- c("Mean", "Standard Deviation", "2.5\\% CI", "97.5\\% CI")
 rownames(df) <- c("$log(\\lambda_0)$", "$\\beta_1$", "$\\beta_2$", "$\\beta_3$",
                     "$\\beta_4$", "$\\beta_5$", "$\\beta_6$", "$\\tau$", 
