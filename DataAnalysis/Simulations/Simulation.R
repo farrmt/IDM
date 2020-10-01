@@ -1,5 +1,5 @@
 #----------------------------------------------------#
-#----Simulation study for ISDM combining-------------#
+#----Simulation study for IDM combining--------------#
 #----distance sampling and opportunistic sampling----#
 #----Created by Matthew Farr-------------------------#
 #----------------------------------------------------#
@@ -457,47 +457,47 @@ for(i in 1:iter){
   
   #Scenario 2.1: PO Large DS 5%; independent
   print(2.1)
-  S[[2]] <- jagsUI(data2, inits2, params, "ISDM1.txt", n.thin=nt, 
+  S[[2]] <- jagsUI(data2, inits2, params, "IDM1.txt", n.thin=nt, 
                    n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na, parallel = TRUE)
   
   #Scenario 2.2: PO Large DS 5%; dependent
   print(2.2)
-  S[[3]] <- jagsUI(data2, inits2, params, "ISDM2.txt", n.thin=nt, 
+  S[[3]] <- jagsUI(data2, inits2, params, "IDM2.txt", n.thin=nt, 
                    n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na, parallel = TRUE)
   
   #Scenario 3.1: PO Large DS 10%; independent
   print(3.1)
-  S[[4]] <- jagsUI(data3, inits3, params, "ISDM1.txt", n.thin=nt, 
+  S[[4]] <- jagsUI(data3, inits3, params, "IDM1.txt", n.thin=nt, 
                    n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na, parallel = TRUE)
   
   #Scenario 3.2: PO Large DS 10%; dependent
   print(3.2)
-  S[[5]] <- jagsUI(data3, inits3, params, "ISDM2.txt", n.thin=nt, 
+  S[[5]] <- jagsUI(data3, inits3, params, "IDM2.txt", n.thin=nt, 
                    n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na, parallel = TRUE)
   
   #Scenario 4.1: PO Large DS 15%; independent
   print(4.1)
-  S[[6]] <- jagsUI(data4, inits4, params, "ISDM1.txt", n.thin=nt, 
+  S[[6]] <- jagsUI(data4, inits4, params, "IDM1.txt", n.thin=nt, 
                    n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na, parallel = TRUE)
   
   #Scenario 4.2: PO Large DS 15%; dependent
   print(4.2)
-  S[[7]] <- jagsUI(data4, inits4, params, "ISDM2.txt", n.thin=nt, 
+  S[[7]] <- jagsUI(data4, inits4, params, "IDM2.txt", n.thin=nt, 
                    n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na, parallel = TRUE)
   
   #Scenario 5.1: PO Large DS 20%; independent
   print(5.1)
-  S[[8]] <- jagsUI(data5, inits5, params, "ISDM1.txt", n.thin=nt, 
+  S[[8]] <- jagsUI(data5, inits5, params, "IDM1.txt", n.thin=nt, 
                    n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na, parallel = TRUE)
   
   #Scenario 5.2: PO Large DS 20%; dependent
   print(5.2)
-  S[[9]] <- jagsUI(data5, inits5, params, "ISDM2.txt", n.thin=nt, 
+  S[[9]] <- jagsUI(data5, inits5, params, "IDM2.txt", n.thin=nt, 
                    n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na, parallel = TRUE)
   
   #Scenario 5.3: PO Large DS 20%; alternative structure dependent
   print(5.3)
-  S[[10]] <- jagsUI(data5, inits5, params, "ISDM3.txt", n.thin=nt, 
+  S[[10]] <- jagsUI(data5, inits5, params, "IDM3.txt", n.thin=nt, 
                    n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na, parallel = TRUE)
   
   #Scenario 6: PO Small DS 0%
@@ -507,22 +507,22 @@ for(i in 1:iter){
   
   #Scenario 7: PO Small DS 5%
   print(7)
-  S[[12]] <- jagsUI(data7, inits7, params, "ISDM1.txt", n.thin=nt, 
+  S[[12]] <- jagsUI(data7, inits7, params, "IDM1.txt", n.thin=nt, 
                    n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na, parallel = TRUE)
   
   #Scenario 8: PO Small DS 10%
   print(8)
-  S[[13]] <- jagsUI(data8, inits8, params, "ISDM1.txt", n.thin=nt, 
+  S[[13]] <- jagsUI(data8, inits8, params, "IDM1.txt", n.thin=nt, 
                    n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na, parallel = TRUE)
   
   #Scenario 9: PO Small DS 15%
   print(9)
-  S[[14]] <- jagsUI(data9, inits9, params, "ISDM1.txt", n.thin=nt, 
+  S[[14]] <- jagsUI(data9, inits9, params, "IDM1.txt", n.thin=nt, 
                    n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na, parallel = TRUE)
   
   #Scenario 10: PO Small DS 20%
   print(10)
-  S[[15]] <- jagsUI(data10, inits10, params, "ISDM1.txt", n.thin=nt, 
+  S[[15]] <- jagsUI(data10, inits10, params, "IDM1.txt", n.thin=nt, 
                     n.chains=nc, n.burnin=nb, n.iter=ni, n.adapt=na, parallel = TRUE)
   
   #----------------------------------#
