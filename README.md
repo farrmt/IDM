@@ -4,7 +4,7 @@
 
 ### Ecology
 
-### Code/Data DOI: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3981242.svg)](https://doi.org/10.5281/zenodo.3981242)
+### Code/Data DOI: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3981241.svg)](https://doi.org/10.5281/zenodo.3981241)
 
 ### Please contact the first author for questions about the code or data: Matthew T. Farr (matthewtfarr@gmail.com)
 __________________________________________________________________________________________________________________________________________
