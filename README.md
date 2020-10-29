@@ -18,7 +18,7 @@ Integrated models combine multiple data types within a unified analysis to estim
 ### [DataFormatting](./DataFormatting): Contains raw data, code to format raw data for analysis, and formatted data
 ### [PostAnalysis](./PostAnalysis): Contains code to create figures
 ### [SupportingInformation](./SupportingInformation): Contains supporting information and code to generate supporting information
-### [PublishedPDF](./blob/master/Farr_et_al-2020-Ecology.pdf): PDF of published paper
+### [PublishedPDF](https://github.com/farrmt/IDM/blob/master/Farr_et_al-200-Ecology.pdf): PDF of published paper
 
 ## Data
 See the following subdirectories for data and metadata: [DataFromatting/RawData](./DataFormatting/RawData)  
